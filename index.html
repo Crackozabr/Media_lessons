@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Курс Медиакласса — МБОУ СОШ «Мозаика»</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #F8FAFC;
+      color: #0F172A;
+    }
+    .bg-glow-1 {
+      background: radial-gradient(circle at 15% 15%, rgba(124, 58, 237, 0.10) 0%, transparent 55%);
+    }
+    .bg-glow-2 {
+      background: radial-gradient(circle at 85% 85%, rgba(13, 148, 136, 0.10) 0%, transparent 55%);
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 2px solid rgba(203, 213, 225, 0.9);
+      box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(124, 58, 237, 0.5);
+      box-shadow: 0 20px 40px rgba(124, 58, 237, 0.14);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col justify-between relative font-sans">
+
+  <!-- Фоновое свечение -->
+  <div class="fixed inset-0 bg-glow-1 pointer-events-none z-0"></div>
+  <div class="fixed inset-0 bg-glow-2 pointer-events-none z-0"></div>
+
+  <!-- ШАПКА САЙТА -->
+  <header class="sticky top-0 z-20 flex items-center justify-between px-6 md:px-12 py-4 border-b border-slate-200/90 bg-white/95 backdrop-blur-md shadow-sm">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-300 p-2 shadow-sm flex items-center justify-center shrink-0">
+        <svg viewBox="0 0 100 100" class="w-full h-full">
+          <path d="M15 80 L35 20 L50 55 L65 20 L85 80 H68 L58 45 L50 68 L42 45 L32 80 Z" fill="#EA580C"/>
+          <rect x="15" y="65" width="12" height="15" fill="#059669" rx="2"/>
+          <rect x="73" y="65" width="12" height="15" fill="#7C3AED" rx="2"/>
+          <circle cx="50" cy="22" r="6" fill="#D97706"/>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-bold tracking-wider uppercase text-purple-700">МБОУ СОШ «Мозаика»</span>
+          <span class="text-xs px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-300 font-semibold">5 класс</span>
+        </div>
+        <h1 class="text-lg md:text-xl font-extrabold text-slate-900">Интерактивный портал Медиакласса</h1>
+      </div>
+    </div>
+
+    <div class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 border border-slate-300 text-sm text-slate-700 font-bold">
+      <i data-lucide="sparkles" class="w-4 h-4 text-purple-600"></i>
+      <span>Портал увлекательных занятий</span>
+    </div>
+  </header>
+
+  <!-- ОСНОВНОЙ КОНТЕНТ -->
+  <main class="relative z-10 flex-1 max-w-6xl w-full mx-auto px-6 md:px-12 py-10 space-y-12">
+
+    <!-- Приветственный баннер -->
+    <section class="text-center space-y-4 max-w-3xl mx-auto">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-100 border border-teal-300 text-teal-900 text-sm font-bold">
+        <i data-lucide="compass" class="w-4 h-4 text-teal-700"></i>
+        <span>От простых текстов до собственного медиапродукта</span>
+      </div>
+      <h2 class="text-4xl md:text-6xl font-display font-black tracking-tight text-slate-900">
+        Программа <span class="bg-gradient-to-r from-purple-700 via-pink-600 to-teal-600 bg-clip-text text-transparent">Медиаобразования</span>
+      </h2>
+      <p class="text-lg md:text-xl text-slate-600 font-medium">
+        Выбери нужное занятие, чтобы открыть интерактивную презентацию и тренажеры для работы в классе или дома.
+      </p>
+    </section>
+
+    <!-- СЕТКА ЗАНЯТИЙ -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
+        <h3 class="text-2xl font-display font-black text-slate-900 flex items-center gap-2.5">
+          <i data-lucide="layers" class="w-6 h-6 text-purple-600"></i>
+          <span>Список занятий</span>
+        </h3>
+      </div>
+
+      <!-- Контейнер для карточек уроков -->
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- ================= КАРТОЧКА УРОКА 1 (ОБРАЗЕЦ ДЛЯ КОПИРОВАНИЯ) ================= -->
+        <a href="lesson1.html" class="glass-card rounded-3xl p-6 flex flex-col justify-between group cursor-pointer">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-xl bg-purple-100 text-purple-800 border border-purple-200 text-xs font-extrabold uppercase tracking-wider">
+                Блок 1 • Грамотность
+              </span>
+              <div class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Занятие 01</div>
+              <h4 class="text-xl font-extrabold text-slate-900 group-hover:text-purple-700 transition-colors">
+                Добро пожаловать в мир медиа! Цифровая гигиена
+              </h4>
+            </div>
+
+            <p class="text-sm text-slate-600 font-medium leading-relaxed">
+              4 стихии информации, правила безопасности блогера, защита от фишинга и симулятор надежных паролей.
+            </p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between text-sm font-extrabold text-purple-700">
+            <span>Открыть урок</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </a>
+        <!-- ================= КОНЕЦ КАРТОЧКИ УРОКА 1 ================= -->
+
+
+        <!-- ================= КАРТОЧКА УРОКА 2 (ПРИМЕР) ================= -->
+        <a href="lesson2.html" class="glass-card rounded-3xl p-6 flex flex-col justify-between group cursor-pointer">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-xl bg-teal-100 text-teal-800 border border-teal-200 text-xs font-extrabold uppercase tracking-wider">
+                Блок 1 • Текст и Word
+              </span>
+              <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                <i data-lucide="file-text" class="w-5 h-5"></i>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Занятие 02</div>
+              <h4 class="text-xl font-extrabold text-slate-900 group-hover:text-teal-700 transition-colors">
+                Планирование и работа со структурой в MS Word
+              </h4>
+            </div>
+
+            <p class="text-sm text-slate-600 font-medium leading-relaxed">
+              Архитектура идеи, стили заголовков, списки и превращение текстового хаоса в четкий план презентации.
+            </p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between text-sm font-extrabold text-teal-700">
+            <span>Открыть урок</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </a>
+        <!-- ================= КОНЕЦ КАРТОЧКИ УРОКА 2 ================= -->
+
+        <!-- СЮДА ВСТАВЛЯЙТЕ НОВЫЕ КАРТОЧКИ ПО МЕРЕ ГОТОВНОСТИ УРОКОВ -->
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ПОДВАЛ -->
+  <footer class="relative z-10 border-t border-slate-200/90 bg-white/80 backdrop-blur-md py-6 px-6 md:px-12 text-center text-sm text-slate-500 font-semibold">
+    МБОУ СОШ «Мозаика» • Программа медиаобразования для 5-го класса • «Единство всех — уникальность каждого»
+  </footer>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
