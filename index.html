@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Курс Медиакласса — МБОУ СОШ «Мозаика»</title>
   
   <!-- Tailwind CSS CDN -->
@@ -33,6 +33,7 @@
     body {
       background-color: #F8FAFC;
       color: #0F172A;
+      -webkit-tap-highlight-color: transparent;
     }
     .bg-glow-1 {
       background: radial-gradient(circle at 15% 15%, rgba(124, 58, 237, 0.10) 0%, transparent 55%);
@@ -48,95 +49,103 @@
       box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.06);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .glass-card:hover {
-      transform: translateY(-5px);
-      border-color: rgba(124, 58, 237, 0.5);
-      box-shadow: 0 20px 40px rgba(124, 58, 237, 0.14);
+    @media (hover: hover) {
+      .glass-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(124, 58, 237, 0.5);
+        box-shadow: 0 20px 40px rgba(124, 58, 237, 0.14);
+      }
+    }
+    .glass-card:active {
+      transform: scale(0.98);
     }
   </style>
 </head>
 
-<body class="min-h-screen flex flex-col justify-between relative font-sans">
+<body class="min-h-screen flex flex-col justify-between relative font-sans overflow-x-hidden">
 
   <!-- Фоновое свечение -->
   <div class="fixed inset-0 bg-glow-1 pointer-events-none z-0"></div>
   <div class="fixed inset-0 bg-glow-2 pointer-events-none z-0"></div>
 
-  <!-- ШАПКА САЙТА -->
-  <header class="sticky top-0 z-20 flex items-center justify-between px-6 md:px-12 py-4 border-b border-slate-200/90 bg-white/95 backdrop-blur-md shadow-sm">
-    <div class="flex items-center gap-4">
-      <div class="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-300 p-2 shadow-sm flex items-center justify-center shrink-0">
-        <svg viewBox="0 0 100 100" class="w-full h-full">
-          <path d="M15 80 L35 20 L50 55 L65 20 L85 80 H68 L58 45 L50 68 L42 45 L32 80 Z" fill="#EA580C"/>
-          <rect x="15" y="65" width="12" height="15" fill="#059669" rx="2"/>
-          <rect x="73" y="65" width="12" height="15" fill="#7C3AED" rx="2"/>
-          <circle cx="50" cy="22" r="6" fill="#D97706"/>
-        </svg>
-      </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="text-sm font-bold tracking-wider uppercase text-purple-700">МБОУ СОШ «Мозаика»</span>
-          <span class="text-xs px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-300 font-semibold">5 класс</span>
+  <!-- АДАПТИВНАЯ ШАПКА САЙТА -->
+  <header class="sticky top-0 z-20 px-4 sm:px-6 md:px-12 py-3 md:py-4 border-b border-slate-200/90 bg-white/95 backdrop-blur-md shadow-sm">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      
+      <!-- Бренд школы и заголовок -->
+      <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-300 p-1.5 sm:p-2 shadow-sm flex items-center justify-center shrink-0">
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <path d="M15 80 L35 20 L50 55 L65 20 L85 80 H68 L58 45 L50 68 L42 45 L32 80 Z" fill="#EA580C"/>
+            <rect x="15" y="65" width="12" height="15" fill="#059669" rx="2"/>
+            <rect x="73" y="65" width="12" height="15" fill="#7C3AED" rx="2"/>
+            <circle cx="50" cy="22" r="6" fill="#D97706"/>
+          </svg>
         </div>
-        <h1 class="text-lg md:text-xl font-extrabold text-slate-900">Интерактивный портал Медиакласса</h1>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
+            <span class="text-xs sm:text-sm font-bold tracking-wider uppercase text-purple-700 truncate">МБОУ СОШ «Мозаика»</span>
+            <span class="text-[11px] sm:text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-300 font-semibold shrink-0">5 класс</span>
+          </div>
+          <h1 class="text-sm sm:text-base md:text-xl font-extrabold text-slate-900 truncate">
+            Интерактивный портал Медиакласса
+          </h1>
+        </div>
       </div>
+
+      <!-- Кнопка «Математический забег» -->
+      <a href="math_game.html" class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-teal-600 hover:from-purple-700 hover:to-teal-700 text-white text-xs sm:text-sm font-extrabold shadow-md shadow-purple-500/20 active:scale-95 transition-all shrink-0">
+        <i data-lucide="gamepad-2" class="w-4 h-4 sm:w-5 sm:h-5 shrink-0"></i>
+        <span>Математический забег</span>
+      </a>
+
     </div>
-
-    <!-- <div class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 border border-slate-300 text-sm text-slate-700 font-bold">
-      <i data-lucide="gamepad-2" class="w-4 h-4 text-purple-600"></i>
-      <span>Математический забег</span>
-    </div> -->
-
-    <a href="math_game.html" class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 border border-slate-300 text-sm text-slate-700 font-bold hover:bg-slate-200 transition-colors">
-      <i data-lucide="gamepad-2" class="w-4 h-4 text-purple-600"></i>
-      <span>Математический забег</span>
-    </a>
   </header>
 
   <!-- ОСНОВНОЙ КОНТЕНТ -->
-  <main class="relative z-10 flex-1 max-w-6xl w-full mx-auto px-6 md:px-12 py-10 space-y-12">
+  <main class="relative z-10 flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 md:px-12 py-6 sm:py-10 space-y-8 sm:space-y-12">
 
     <!-- Приветственный баннер -->
-    <section class="text-center space-y-4 max-w-3xl mx-auto">
-      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-100 border border-teal-300 text-teal-900 text-sm font-bold">
-        <i data-lucide="compass" class="w-4 h-4 text-teal-700"></i>
+    <section class="text-center space-y-3 sm:space-y-4 max-w-3xl mx-auto">
+      <div class="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-teal-100 border border-teal-300 text-teal-900 text-xs sm:text-sm font-bold">
+        <i data-lucide="compass" class="w-4 h-4 text-teal-700 shrink-0"></i>
         <span>От простых текстов до собственного медиапродукта</span>
       </div>
-      <h2 class="text-4xl md:text-6xl font-display font-black tracking-tight text-slate-900">
+      <h2 class="text-3xl sm:text-4xl md:text-6xl font-display font-black tracking-tight text-slate-900 leading-tight">
         Программа <span class="bg-gradient-to-r from-purple-700 via-pink-600 to-teal-600 bg-clip-text text-transparent">Медиаобразования</span>
       </h2>
-      <p class="text-lg md:text-xl text-slate-600 font-medium">
+      <p class="text-base sm:text-lg md:text-xl text-slate-600 font-medium px-2">
         Выбери нужное занятие, чтобы открыть интерактивную презентацию и тренажеры для работы в классе или дома.
       </p>
     </section>
 
     <!-- СЕТКА ЗАНЯТИЙ -->
-    <section class="space-y-6">
+    <section class="space-y-4 sm:space-y-6">
       <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
-        <h3 class="text-2xl font-display font-black text-slate-900 flex items-center gap-2.5">
-          <i data-lucide="layers" class="w-6 h-6 text-purple-600"></i>
+        <h3 class="text-xl sm:text-2xl font-display font-black text-slate-900 flex items-center gap-2">
+          <i data-lucide="layers" class="w-5 h-5 sm:w-6 sm:h-6 text-purple-600"></i>
           <span>Список занятий</span>
         </h3>
       </div>
 
       <!-- Контейнер для карточек уроков -->
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
 
         <!-- ================= КАРТОЧКА УРОКА 1 (ОБРАЗЕЦ ДЛЯ КОПИРОВАНИЯ) ================= -->
-        <a href="lesson1.html" class="glass-card rounded-3xl p-6 flex flex-col justify-between group cursor-pointer">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
+        <a href="lesson1.html" class="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-6 flex flex-col justify-between group cursor-pointer">
+          <div class="space-y-3 sm:space-y-4">
+            <div class="flex items-center justify-between gap-2">
               <span class="px-3 py-1 rounded-xl bg-purple-100 text-purple-800 border border-purple-200 text-xs font-extrabold uppercase tracking-wider">
                 Блок 1 • Грамотность
               </span>
-              <div class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
+              <div class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors shrink-0">
                 <i data-lucide="shield-check" class="w-5 h-5"></i>
               </div>
             </div>
 
             <div>
               <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Занятие 01</div>
-              <h4 class="text-xl font-extrabold text-slate-900 group-hover:text-purple-700 transition-colors">
+              <h4 class="text-lg sm:text-xl font-extrabold text-slate-900 group-hover:text-purple-700 transition-colors leading-snug">
                 Добро пожаловать в мир медиа! Цифровая гигиена
               </h4>
             </div>
@@ -146,7 +155,7 @@
             </p>
           </div>
 
-          <div class="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between text-sm font-extrabold text-purple-700">
+          <div class="mt-5 sm:mt-6 pt-3.5 sm:pt-4 border-t border-slate-200/80 flex items-center justify-between text-sm font-extrabold text-purple-700">
             <span>Открыть урок</span>
             <i data-lucide="arrow-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform"></i>
           </div>
@@ -155,20 +164,20 @@
 
 
         <!-- ================= КАРТОЧКА УРОКА 2 (ПРИМЕР) ================= -->
-        <a href="lesson2.html" class="glass-card rounded-3xl p-6 flex flex-col justify-between group cursor-pointer">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
+        <a href="lesson2.html" class="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-6 flex flex-col justify-between group cursor-pointer">
+          <div class="space-y-3 sm:space-y-4">
+            <div class="flex items-center justify-between gap-2">
               <span class="px-3 py-1 rounded-xl bg-teal-100 text-teal-800 border border-teal-200 text-xs font-extrabold uppercase tracking-wider">
                 Блок 1 • Текст и Word
               </span>
-              <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-colors">
+              <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-colors shrink-0">
                 <i data-lucide="file-text" class="w-5 h-5"></i>
               </div>
             </div>
 
             <div>
               <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Занятие 02</div>
-              <h4 class="text-xl font-extrabold text-slate-900 group-hover:text-teal-700 transition-colors">
+              <h4 class="text-lg sm:text-xl font-extrabold text-slate-900 group-hover:text-teal-700 transition-colors leading-snug">
                 Планирование и работа со структурой в MS Word
               </h4>
             </div>
@@ -178,7 +187,7 @@
             </p>
           </div>
 
-          <div class="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between text-sm font-extrabold text-teal-700">
+          <div class="mt-5 sm:mt-6 pt-3.5 sm:pt-4 border-t border-slate-200/80 flex items-center justify-between text-sm font-extrabold text-teal-700">
             <span>Открыть урок</span>
             <i data-lucide="arrow-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform"></i>
           </div>
@@ -193,7 +202,7 @@
   </main>
 
   <!-- ПОДВАЛ -->
-  <footer class="relative z-10 border-t border-slate-200/90 bg-white/80 backdrop-blur-md py-6 px-6 md:px-12 text-center text-sm text-slate-500 font-semibold">
+  <footer class="relative z-10 border-t border-slate-200/90 bg-white/80 backdrop-blur-md py-5 sm:py-6 px-4 sm:px-6 md:px-12 text-center text-xs sm:text-sm text-slate-500 font-semibold leading-relaxed">
     МБОУ СОШ «Мозаика» • Программа медиаобразования для 5-го класса • «Единство всех — уникальность каждого»
   </footer>
 
