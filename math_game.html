@@ -83,11 +83,17 @@
         <!-- Top Row: Score, Progress, Pause, Chalkboard -->
         <div class="w-full flex flex-col gap-2">
             <div class="flex items-center justify-between gap-2">
-                <!-- Pause / Menu Button -->
-                <button id="btnPause" class="pointer-events-auto bg-slate-800/90 hover:bg-slate-700 text-white border border-slate-600 rounded-xl px-3 py-2 flex items-center gap-1.5 shadow-lg active:scale-95 transition">
-                    <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                    <span class="text-xs font-bold uppercase tracking-wider">Меню</span>
-                </button>
+                <div class="flex items-center gap-1.5">
+                    <!-- Pause / Menu Button -->
+                    <button id="btnPause" class="pointer-events-auto bg-slate-800/90 hover:bg-slate-700 text-white border border-slate-600 rounded-xl px-3 py-2 flex items-center gap-1.5 shadow-lg active:scale-95 transition">
+                        <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                        <span class="text-xs font-bold uppercase tracking-wider">Меню</span>
+                    </button>
+                    <!-- Fullscreen Toggle Button in HUD -->
+                    <button id="btnFullscreenHud" title="Во весь экран" class="pointer-events-auto bg-slate-800/90 hover:bg-slate-700 text-white border border-slate-600 w-9 h-9 rounded-xl flex items-center justify-center text-base shadow-lg active:scale-95 transition">
+                        ⛶
+                    </button>
+                </div>
 
                 <!-- Question Progress Badge -->
                 <div class="bg-slate-900/90 border border-slate-700 px-3.5 py-1.5 rounded-xl shadow-lg flex items-center gap-2">
@@ -153,21 +159,22 @@
         <div>
             <!-- Header & Total Score Bank -->
             <div class="flex items-center justify-between gap-2 mb-4">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-2xl shadow-lg border-2 border-amber-200">
-                        🏃‍♂️
-                    </div>
-                    <div>
-                        <h1 class="text-lg sm:text-xl font-black tracking-tight text-white leading-none">МАТЕМАТИЧЕСКИЙ</h1>
-                        <p class="text-xs font-bold text-amber-400 tracking-widest uppercase mt-0.5">Школьный Забег</p>
-                    </div>
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xl shadow-lg border-2 border-amber-200 shrink-0">
+                    🏃‍♂️
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <a href="index.html" title="Выйти из игры" class="btn-3d bg-rose-600 hover:bg-rose-500 text-white border-b-2 border-rose-800 px-3 h-10 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold shadow">
+                        <span>🚪</span>
+                        <span class="hidden sm:inline">Выход</span>
+                    </a>
+                    <button id="btnFullscreenMenu" title="Полноэкранный режим" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow active:scale-95 transition">
+                        ⛶
+                    </button>
                     <button id="btnToggleSound" title="Звук" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow">
                         🔊
                     </button>
-                    <div class="bg-amber-500 text-slate-950 border-2 border-amber-300 px-3.5 py-1.5 rounded-xl font-black flex items-center gap-1.5 shadow-lg">
+                    <div class="bg-amber-500 text-slate-950 border-2 border-amber-300 px-3 py-1.5 rounded-xl font-black flex items-center gap-1.5 shadow-lg shrink-0">
                         <span>⭐</span>
                         <span id="menuTotalPoints">0</span>
                     </div>
@@ -213,13 +220,19 @@
                 <span class="text-[11px] text-slate-400">Нажмите для старта</span>
             </div>
             <div id="levelsList" class="space-y-2.5">
-                <!-- Populated by JS -->
+                <!-- Populated dynamically by JS -->
             </div>
         </div>
 
-        <!-- Footer Controls Hint -->
-        <div class="mt-4 pt-3 border-t border-slate-800 text-center text-xs text-slate-400">
-            Управление: свайпы пальцем ⬅️ ➡️ ⬆️ или клавиши со стрелками / A, D, W, Пробел
+        <!-- Footer Controls Hint & Exit Button -->
+        <div class="mt-4 pt-3 border-t border-slate-800 flex flex-col gap-2.5">
+            <a href="index.html" class="btn-3d w-full bg-slate-800 hover:bg-rose-950/80 text-slate-200 hover:text-rose-200 font-bold py-2.5 px-4 rounded-2xl border-b-4 border-slate-950 hover:border-rose-900 flex items-center justify-center gap-2 text-xs sm:text-sm transition shadow">
+                <span>🚪</span>
+                <span>Выйти из игры</span>
+            </a>
+            <div class="text-center text-xs text-slate-400">
+                Управление: свайпы пальцем ⬅️ ➡️ ⬆️ или клавиши со стрелками / A, D, W, Пробел
+            </div>
         </div>
     </div>
 
@@ -1214,128 +1227,340 @@ function project3D(laneNormalized, zDepth, w, h) {
     return { x: screenX, y: screenY, scale, halfWidth: currentHalfWidth };
 }
 
+// Детерминированный генератор для расположения дверей, номеров кабинетов и стендов
+function pseudoHash(n) {
+    return ((Math.sin(n * 127.1 + 311.7) * 43758.5453) % 1 + 1) % 1;
+}
+
 function drawCorridorEnvironment(w, h) {
     const horizonY = h * 0.30;
     const farHalfW = w * 0.12;
     const nearHalfW = w * 0.46;
 
-    // 1. Мягкий пастельный потолок с плавным градиентом к горизонту
+    // Углы схода стен к потолку
+    const leftCeilNearX = w * 0.5 - nearHalfW * 1.15;
+    const rightCeilNearX = w * 0.5 + nearHalfW * 1.15;
+    const leftFloorNearX = w * 0.5 - nearHalfW * 1.15;
+    const rightFloorNearX = w * 0.5 + nearHalfW * 1.15;
+
+    // 1. Потолок школьного коридора
     const ceilGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
     ceilGrad.addColorStop(0, '#1e293b');
-    ceilGrad.addColorStop(0.65, '#283548');
-    ceilGrad.addColorStop(1, '#334155');
+    ceilGrad.addColorStop(0.7, '#334155');
+    ceilGrad.addColorStop(1, '#1e293b');
     ctx.fillStyle = ceilGrad;
     ctx.fillRect(0, 0, w, horizonY);
 
-    // 2. Спокойные мягкие стены коридора без резкого контраста
-    const leftWallGrad = ctx.createLinearGradient(0, horizonY * 0.5, w * 0.5 - farHalfW, horizonY);
-    leftWallGrad.addColorStop(0, '#334155');
-    leftWallGrad.addColorStop(0.6, '#2b394d');
-    leftWallGrad.addColorStop(1, '#243242');
-    ctx.fillStyle = leftWallGrad;
+    // 2. Левая и правая стены (верхняя светлая часть и нижняя окрашенная панель — как в школе)
+    const wallTopGrad = ctx.createLinearGradient(0, 0, 0, h);
+    wallTopGrad.addColorStop(0, '#475569');
+    wallTopGrad.addColorStop(0.5, '#64748b');
+    wallTopGrad.addColorStop(1, '#475569');
+
+    // Левая стена (основа)
+    ctx.fillStyle = wallTopGrad;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(w * 0.5 - farHalfW, horizonY);
-    ctx.lineTo(w * 0.5 - nearHalfW, h);
+    ctx.lineTo(leftFloorNearX, h);
     ctx.lineTo(0, h);
     ctx.closePath();
     ctx.fill();
 
-    const rightWallGrad = ctx.createLinearGradient(w, horizonY * 0.5, w * 0.5 + farHalfW, horizonY);
-    rightWallGrad.addColorStop(0, '#334155');
-    rightWallGrad.addColorStop(0.6, '#2b394d');
-    rightWallGrad.addColorStop(1, '#243242');
-    ctx.fillStyle = rightWallGrad;
+    // Правая стена (основа)
+    ctx.fillStyle = wallTopGrad;
     ctx.beginPath();
     ctx.moveTo(w, 0);
     ctx.lineTo(w * 0.5 + farHalfW, horizonY);
-    ctx.lineTo(w * 0.5 + nearHalfW, h);
+    ctx.lineTo(rightFloorNearX, h);
     ctx.lineTo(w, h);
     ctx.closePath();
     ctx.fill();
 
-    // 3. Пол коридора в тёплых приглушённых тонах
+    // Нижняя окрашенная панель стен (классический школьный шалфейно-синий оттенок)
+    const wainscotFarY = horizonY;
+    const wainscotNearLeftY = h - (h - horizonY) * 0.42;
+    const wainscotNearRightY = h - (h - horizonY) * 0.42;
+
+    ctx.fillStyle = '#334e68';
+    ctx.beginPath();
+    ctx.moveTo(w * 0.5 - farHalfW, wainscotFarY);
+    ctx.lineTo(0, wainscotNearLeftY);
+    ctx.lineTo(0, h);
+    ctx.lineTo(leftFloorNearX, h);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(w * 0.5 + farHalfW, wainscotFarY);
+    ctx.lineTo(w, wainscotNearRightY);
+    ctx.lineTo(w, h);
+    ctx.lineTo(rightFloorNearX, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // Разделительный молдинг на стенах
+    ctx.strokeStyle = 'rgba(226, 232, 240, 0.35)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(w * 0.5 - farHalfW, wainscotFarY);
+    ctx.lineTo(0, wainscotNearLeftY);
+    ctx.moveTo(w * 0.5 + farHalfW, wainscotFarY);
+    ctx.lineTo(w, wainscotNearRightY);
+    ctx.stroke();
+
+    // 3. Пол школьного коридора (рекреационный линолеум/плитка)
     const floorGrad = ctx.createLinearGradient(0, horizonY, 0, h);
-    floorGrad.addColorStop(0, '#293548');
-    floorGrad.addColorStop(0.35, '#3b495e');
-    floorGrad.addColorStop(1, '#475569');
+    floorGrad.addColorStop(0, '#263445');
+    floorGrad.addColorStop(0.35, '#36485e');
+    floorGrad.addColorStop(1, '#475b73');
     ctx.fillStyle = floorGrad;
     ctx.beginPath();
     ctx.moveTo(w * 0.5 - farHalfW, horizonY);
     ctx.lineTo(w * 0.5 + farHalfW, horizonY);
-    ctx.lineTo(w * 0.5 + nearHalfW * 1.15, h);
-    ctx.lineTo(w * 0.5 - nearHalfW * 1.15, h);
+    ctx.lineTo(rightFloorNearX, h);
+    ctx.lineTo(leftFloorNearX, h);
     ctx.closePath();
     ctx.fill();
 
-    // 4. Плавные секции стен, шкафчиков и мягкого света (без ряби и мелькания)
-    const numSegments = 8;
+    // Вспомогательная функция интерполяции высоты на стене в зависимости от точки пола (x, y)
+    // wallFrac = 0 (у пола), wallFrac = 1 (у потолка)
+    function getWallY(floorPt, wallFrac) {
+        const distFromHorizon = floorPt.y - horizonY;
+        const ceilY = horizonY - distFromHorizon * 0.52;
+        return floorPt.y - (floorPt.y - ceilY) * wallFrac;
+    }
+
+    // 4. Отрисовка сегментов коридора: ОКНА СЛЕВА, ДВЕРИ И СТЕНДЫ СПРАВА
+    const numSegments = 9;
     const step = 1 / numSegments;
-    const offset = ((gameState.corridorScroll % step) + step) % step;
+    const rawScroll = gameState.corridorScroll;
+    const baseIndex = Math.floor(rawScroll / step);
+    const offset = ((rawScroll % step) + step) % step;
 
     for (let i = numSegments; i >= 0; i--) {
-        const z = (i * step) - offset;
-        if (z <= 0.001 || z >= 1.0) continue;
+        const z1 = (i * step) - offset;
+        if (z1 <= -0.02 || z1 >= 0.99) continue;
 
-        const nextZ = Math.max(0.001, z - step * 0.72);
-        const leftEdge = project3D(-1.5, z, w, h);
-        const rightEdge = project3D(1.5, z, w, h);
-        const nextLeft = project3D(-1.5, nextZ, w, h);
-        const nextRight = project3D(1.5, nextZ, w, h);
+        const z2 = z1 - step * 0.68;
+        // Постоянный мировой индекс сегмента: сохраняется при переходе между шагами
+        const segId = baseIndex + i;
 
-        // Плавное затухание вдали (эффект атмосферной дымки у горизонта)
-        const distanceFade = Math.pow(1 - z, 1.35);
+        const leftFloor1 = project3D(-1.5, z1, w, h);
+        const leftFloor2 = project3D(-1.5, z2, w, h);
+        const rightFloor1 = project3D(1.5, z1, w, h);
+        const rightFloor2 = project3D(1.5, z2, w, h);
 
-        // Деликатная линия плитки на полу
-        ctx.strokeStyle = `rgba(203, 213, 225, ${0.14 * distanceFade})`;
-        ctx.lineWidth = Math.max(1, 2 * leftEdge.scale);
+        const distanceFade = Math.max(0, Math.min(1, Math.pow(1 - Math.max(0, z1), 1.25)));
+
+        // Поперечные швы плитки пола
+        ctx.strokeStyle = `rgba(203, 213, 225, ${0.15 * distanceFade})`;
+        ctx.lineWidth = Math.max(1, 2 * leftFloor1.scale);
         ctx.beginPath();
-        ctx.moveTo(leftEdge.x, leftEdge.y);
-        ctx.lineTo(rightEdge.x, rightEdge.y);
+        ctx.moveTo(leftFloor1.x, leftFloor1.y);
+        ctx.lineTo(rightFloor1.x, rightFloor1.y);
         ctx.stroke();
 
-        // Высота стеновых панелей / шкафчиков
-        const wallTopCur = horizonY - (leftEdge.y - horizonY) * 0.78;
-        const wallTopNext = horizonY - (nextLeft.y - horizonY) * 0.78;
+        // ---------------- ЛЕВАЯ СТОРОНА: ШКОЛЬНЫЕ ОКНА И СОЛНЕЧНЫЙ СВЕТ ----------------
+        // Окна идут почти в каждом пролёте (кроме редких широких простенков)
+        const hasWindow = pseudoHash(segId * 3 + 7) > 0.16;
+        if (hasWindow) {
+            const winBottomFrac = 0.36;
+            const winTopFrac = 0.88;
 
-        // Левая мягкая панель шкафчика
-        ctx.fillStyle = `rgba(71, 98, 136, ${0.38 * distanceFade})`;
-        ctx.strokeStyle = `rgba(148, 163, 184, ${0.22 * distanceFade})`;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(leftEdge.x, leftEdge.y - 2);
-        ctx.lineTo(leftEdge.x, wallTopCur);
-        ctx.lineTo(nextLeft.x, wallTopNext);
-        ctx.lineTo(nextLeft.x, nextLeft.y - 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+            const wy1Bot = getWallY(leftFloor1, winBottomFrac);
+            const wy1Top = getWallY(leftFloor1, winTopFrac);
+            const wy2Bot = getWallY(leftFloor2, winBottomFrac);
+            const wy2Top = getWallY(leftFloor2, winTopFrac);
 
-        // Правая мягкая панель шкафчика
-        ctx.beginPath();
-        ctx.moveTo(rightEdge.x, rightEdge.y - 2);
-        ctx.lineTo(rightEdge.x, wallTopCur);
-        ctx.lineTo(nextRight.x, wallTopNext);
-        ctx.lineTo(nextRight.x, nextRight.y - 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+            // Солнечный луч на полу от окна
+            const rayRight1 = project3D(-0.2, z1, w, h);
+            const rayRight2 = project3D(-0.2, z2, w, h);
+            ctx.fillStyle = `rgba(254, 249, 195, ${0.08 * distanceFade})`;
+            ctx.beginPath();
+            ctx.moveTo(leftFloor1.x, leftFloor1.y);
+            ctx.lineTo(rayRight1.x, rayRight1.y);
+            ctx.lineTo(rayRight2.x, rayRight2.y);
+            ctx.lineTo(leftFloor2.x, leftFloor2.y);
+            ctx.closePath();
+            ctx.fill();
 
-        // Плинтус вдоль стен для плавного визуального направления
-        ctx.strokeStyle = `rgba(148, 163, 184, ${0.28 * distanceFade})`;
-        ctx.lineWidth = Math.max(1.5, 3 * leftEdge.scale);
+            // Стеклопакет (голубое небо и солнечный свет)
+            const skyGrad = ctx.createLinearGradient(0, wy2Top, 0, wy2Bot);
+            skyGrad.addColorStop(0, `rgba(125, 211, 252, ${0.88 * distanceFade})`);
+            skyGrad.addColorStop(0.65, `rgba(186, 230, 253, ${0.88 * distanceFade})`);
+            skyGrad.addColorStop(1, `rgba(254, 240, 138, ${0.82 * distanceFade})`);
+
+            ctx.fillStyle = skyGrad;
+            ctx.beginPath();
+            ctx.moveTo(leftFloor1.x, wy1Bot);
+            ctx.lineTo(leftFloor1.x, wy1Top);
+            ctx.lineTo(leftFloor2.x, wy2Top);
+            ctx.lineTo(leftFloor2.x, wy2Bot);
+            ctx.closePath();
+            ctx.fill();
+
+            // Белая оконная рама и фрамуга
+            ctx.strokeStyle = `rgba(248, 250, 252, ${0.9 * distanceFade})`;
+            ctx.lineWidth = Math.max(1.5, 3.2 * leftFloor1.scale);
+            ctx.stroke();
+
+            // Горизонтальная перекладина окна (фрамуга сверху)
+            const wy1Transom = getWallY(leftFloor1, 0.72);
+            const wy2Transom = getWallY(leftFloor2, 0.72);
+            ctx.lineWidth = Math.max(1, 2 * leftFloor1.scale);
+            ctx.beginPath();
+            ctx.moveTo(leftFloor1.x, wy1Transom);
+            ctx.lineTo(leftFloor2.x, wy2Transom);
+            ctx.stroke();
+
+            // Вертикальная створка посередине окна
+            const midX = (leftFloor1.x + leftFloor2.x) * 0.5;
+            const midBotY = (wy1Bot + wy2Bot) * 0.5;
+            const midTopY = (wy1Transom + wy2Transom) * 0.5;
+            ctx.beginPath();
+            ctx.moveTo(midX, midBotY);
+            ctx.lineTo(midX, midTopY);
+            ctx.stroke();
+
+            // Широкий белый подоконник
+            ctx.strokeStyle = `rgba(226, 232, 240, ${0.95 * distanceFade})`;
+            ctx.lineWidth = Math.max(2, 4.5 * leftFloor1.scale);
+            ctx.beginPath();
+            ctx.moveTo(leftFloor1.x, wy1Bot);
+            ctx.lineTo(leftFloor2.x, wy2Bot);
+            ctx.stroke();
+        }
+
+        // ---------------- ПРАВАЯ СТОРОНА: ДВЕРИ КАБИНЕТОВ И СТЕНДЫ ----------------
+        const rightRoll = pseudoHash(segId * 5 + 19);
+        // Частота появления дверей сокращена в 7 раз (с 0.58 до 0.083)
+        if (rightRoll < 0.083) {
+            // Деревянная дверь в учебный кабинет (сделана пониже)
+            const doorTopFrac = 0.58;
+            const dy1Bot = rightFloor1.y;
+            const dy1Top = getWallY(rightFloor1, doorTopFrac);
+            const dy2Bot = rightFloor2.y;
+            const dy2Top = getWallY(rightFloor2, doorTopFrac);
+
+            // Полотно двери (тёплое дерево)
+            const doorPalette = rightRoll < 0.04
+                ? `rgba(180, 83, 9, ${0.92 * distanceFade})`
+                : `rgba(146, 64, 14, ${0.92 * distanceFade})`;
+
+            ctx.fillStyle = doorPalette;
+            ctx.beginPath();
+            ctx.moveTo(rightFloor1.x, dy1Bot);
+            ctx.lineTo(rightFloor1.x, dy1Top);
+            ctx.lineTo(rightFloor2.x, dy2Top);
+            ctx.lineTo(rightFloor2.x, dy2Bot);
+            ctx.closePath();
+            ctx.fill();
+
+            // Наличник (коробка двери)
+            ctx.strokeStyle = `rgba(69, 26, 3, ${0.9 * distanceFade})`;
+            ctx.lineWidth = Math.max(1.5, 3.2 * rightFloor1.scale);
+            ctx.stroke();
+
+            // Встроенное матовое окошко в верхней половине двери
+            const gl1Bot = getWallY(rightFloor1, 0.36);
+            const gl1Top = getWallY(rightFloor1, 0.50);
+            const gl2Bot = getWallY(rightFloor2, 0.36);
+            const gl2Top = getWallY(rightFloor2, 0.50);
+
+            const insetX1 = rightFloor1.x + (rightFloor2.x - rightFloor1.x) * 0.2;
+            const insetX2 = rightFloor1.x + (rightFloor2.x - rightFloor1.x) * 0.8;
+
+            ctx.fillStyle = `rgba(254, 243, 199, ${0.65 * distanceFade})`;
+            ctx.beginPath();
+            ctx.moveTo(insetX1, gl1Bot + (gl2Bot - gl1Bot) * 0.2);
+            ctx.lineTo(insetX1, gl1Top + (gl2Top - gl1Top) * 0.2);
+            ctx.lineTo(insetX2, gl1Top + (gl2Top - gl1Top) * 0.8);
+            ctx.lineTo(insetX2, gl1Bot + (gl2Bot - gl1Bot) * 0.8);
+            ctx.closePath();
+            ctx.fill();
+
+            // Дверная ручка
+            const handleX = rightFloor1.x + (rightFloor2.x - rightFloor1.x) * 0.78;
+            const handleY = getWallY(rightFloor2, 0.27);
+            ctx.fillStyle = `rgba(250, 204, 21, ${0.95 * distanceFade})`;
+            ctx.beginPath();
+            ctx.arc(handleX, handleY, Math.max(1.5, 3.2 * rightFloor1.scale), 0, Math.PI * 2);
+            ctx.fill();
+
+            // Номер кабинета (крупная табличка на двери и над дверью)
+            const roomNum = 101 + (Math.abs(Math.floor(segId / 3)) % 35);
+            const doorCenterX = (rightFloor1.x + rightFloor2.x) * 0.5;
+
+            // 1) Табличка с номером прямо на двери
+            const plateY1 = getWallY(rightFloor1, 0.43);
+            const plateY2 = getWallY(rightFloor2, 0.43);
+            const plateY = (plateY1 + plateY2) * 0.5;
+
+            // 2) Табличка над дверью
+            const signY1 = getWallY(rightFloor1, 0.65);
+            const signY2 = getWallY(rightFloor2, 0.65);
+            const signY = (signY1 + signY2) * 0.5;
+
+            if (rightFloor1.scale > 0.28) {
+                const sw = Math.max(16, 26 * rightFloor1.scale);
+                const sh = Math.max(9, 13 * rightFloor1.scale);
+
+                // Белая табличка с синей окантовкой над дверью
+                ctx.fillStyle = `rgba(248, 250, 252, ${0.95 * distanceFade})`;
+                ctx.strokeStyle = `rgba(30, 58, 138, ${0.9 * distanceFade})`;
+                ctx.lineWidth = Math.max(1, 1.5 * rightFloor1.scale);
+                ctx.beginPath();
+                ctx.roundRect(doorCenterX - sw * 0.5, signY - sh * 0.5, sw, sh, 3 * rightFloor1.scale);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = `rgba(15, 23, 42, ${0.98 * distanceFade})`;
+                ctx.font = `900 ${Math.max(8, Math.floor(11 * rightFloor1.scale))}px 'Rubik', sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`№${roomNum}`, doorCenterX, signY);
+
+                // Номер на стекле самой двери
+                ctx.fillStyle = `rgba(69, 26, 3, ${0.92 * distanceFade})`;
+                ctx.font = `900 ${Math.max(7, Math.floor(9.5 * rightFloor1.scale))}px 'Rubik', sans-serif`;
+                ctx.fillText(String(roomNum), doorCenterX, plateY);
+            }
+        } else if (rightRoll > 0.45 && rightRoll < 0.62) {
+            // Школьная доска объявлений / стенд с расписанием между дверями
+            const bBot1 = getWallY(rightFloor1, 0.42);
+            const bTop1 = getWallY(rightFloor1, 0.72);
+            const bBot2 = getWallY(rightFloor2, 0.42);
+            const bTop2 = getWallY(rightFloor2, 0.72);
+
+            ctx.fillStyle = `rgba(21, 128, 61, ${0.78 * distanceFade})`;
+            ctx.strokeStyle = `rgba(180, 83, 9, ${0.85 * distanceFade})`;
+            ctx.lineWidth = Math.max(1, 2.5 * rightFloor1.scale);
+            ctx.beginPath();
+            ctx.moveTo(rightFloor1.x, bBot1);
+            ctx.lineTo(rightFloor1.x, bTop1);
+            ctx.lineTo(rightFloor2.x, bTop2);
+            ctx.lineTo(rightFloor2.x, bBot2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // Плинтус внизу обеих стен
+        ctx.strokeStyle = `rgba(30, 41, 59, ${0.65 * distanceFade})`;
+        ctx.lineWidth = Math.max(2, 4 * leftFloor1.scale);
         ctx.beginPath();
-        ctx.moveTo(leftEdge.x, leftEdge.y);
-        ctx.lineTo(nextLeft.x, nextLeft.y);
-        ctx.moveTo(rightEdge.x, rightEdge.y);
-        ctx.lineTo(nextRight.x, nextRight.y);
+        ctx.moveTo(leftFloor1.x, leftFloor1.y);
+        ctx.lineTo(leftFloor2.x, leftFloor2.y);
+        ctx.moveTo(rightFloor1.x, rightFloor1.y);
+        ctx.lineTo(rightFloor2.x, rightFloor2.y);
         ctx.stroke();
 
         // Мягкий потолочный светильник
-        const ceilY = horizonY - (leftEdge.y - horizonY) * 0.68;
-        const lampHalfW = leftEdge.halfWidth * 0.30;
-        ctx.strokeStyle = `rgba(241, 245, 249, ${0.32 * distanceFade})`;
-        ctx.lineWidth = Math.max(2, 5.5 * leftEdge.scale);
+        const ceilY = horizonY - (leftFloor1.y - horizonY) * 0.50;
+        const lampHalfW = leftFloor1.halfWidth * 0.30;
+        ctx.strokeStyle = `rgba(248, 250, 252, ${0.38 * distanceFade})`;
+        ctx.lineWidth = Math.max(2, 5.5 * leftFloor1.scale);
         ctx.lineCap = 'round';
         ctx.beginPath();
         ctx.moveTo(w * 0.5 - lampHalfW, ceilY);
@@ -1344,15 +1569,15 @@ function drawCorridorEnvironment(w, h) {
         ctx.lineCap = 'butt';
     }
 
-    // 5. Плавная воздушная дымка на горизонте (скрывает появление объектов вдали)
-    const fogGrad = ctx.createLinearGradient(0, horizonY - 26, 0, horizonY + 42);
-    fogGrad.addColorStop(0, 'rgba(30, 41, 59, 0.95)');
-    fogGrad.addColorStop(0.5, 'rgba(36, 50, 68, 0.88)');
-    fogGrad.addColorStop(1, 'rgba(59, 73, 94, 0)');
+    // 5. Дальний конец коридора (двустворчатая дверь рекреации и мягкая дымка)
+    const fogGrad = ctx.createLinearGradient(0, horizonY - 26, 0, horizonY + 38);
+    fogGrad.addColorStop(0, 'rgba(30, 41, 59, 0.92)');
+    fogGrad.addColorStop(0.5, 'rgba(41, 55, 75, 0.85)');
+    fogGrad.addColorStop(1, 'rgba(54, 72, 94, 0)');
     ctx.fillStyle = fogGrad;
-    ctx.fillRect(0, horizonY - 26, w, 68);
+    ctx.fillRect(0, horizonY - 26, w, 64);
 
-    // 6. Аккуратная разметка трёх дорожек (непрерывные мягкие линии без мелькания пунктира)
+    // 6. Аккуратная разметка трёх беговых дорожек на полу
     [-0.5, 0.5].forEach(laneDiv => {
         const farPt = project3D(laneDiv, 0.95, w, h);
         const nearPt = project3D(laneDiv, 0.0, w, h);
@@ -2098,6 +2323,47 @@ document.getElementById('btnToggleSound').addEventListener('click', (e) => {
     sfx.enabled = !sfx.enabled;
     e.currentTarget.textContent = sfx.enabled ? '🔊' : '🔇';
 });
+
+// Переключение полноэкранного режима браузера (Fullscreen API с поддержкой префиксов)
+function toggleFullscreen() {
+    const doc = document;
+    const elem = document.documentElement;
+
+    const isFullscreen = doc.fullscreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
+
+    if (!isFullscreen) {
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(() => {});
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        }
+    } else {
+        if (doc.exitFullscreen) {
+            doc.exitFullscreen().catch(() => {});
+        } else if (doc.webkitExitFullscreen) {
+            doc.webkitExitFullscreen();
+        } else if (doc.msExitFullscreen) {
+            doc.msExitFullscreen();
+        }
+    }
+}
+
+function updateFullscreenButtons() {
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+    const icon = isFs ? '🗗' : '⛶';
+    const btnMenu = document.getElementById('btnFullscreenMenu');
+    const btnHud = document.getElementById('btnFullscreenHud');
+    if (btnMenu) btnMenu.textContent = icon;
+    if (btnHud) btnHud.textContent = icon;
+    setTimeout(resizeCanvas, 100);
+}
+
+document.getElementById('btnFullscreenMenu').addEventListener('click', toggleFullscreen);
+document.getElementById('btnFullscreenHud').addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', updateFullscreenButtons);
+document.addEventListener('webkitfullscreenchange', updateFullscreenButtons);
 
 document.getElementById('btnPause').addEventListener('click', () => {
     gameState.mode = 'menu';
