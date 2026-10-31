@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Математический Забег — Школьный Раннер</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Rubik', sans-serif;
+            background-color: #0f172a;
+            touch-action: none;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 540px;
+            margin: 0 auto;
+            background: #1e293b;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .chalkboard {
+            background: linear-gradient(145deg, #1b4332, #081c15);
+            border: 6px solid #b07d4f;
+            box-shadow: inset 0 0 18px rgba(0,0,0,0.7), 0 8px 20px rgba(0,0,0,0.45);
+        }
+        .btn-3d {
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .btn-3d:active {
+            transform: translateY(3px);
+        }
+        @keyframes floatPop {
+            0% { opacity: 0; transform: translateY(15px) scale(0.8); }
+            25% { opacity: 1; transform: translateY(0px) scale(1.1); }
+            80% { opacity: 1; transform: translateY(-20px) scale(1); }
+            100% { opacity: 0; transform: translateY(-35px) scale(0.9); }
+        }
+        .floating-feedback {
+            animation: floatPop 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        /* Custom Scrollbar for Modals */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.5);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center bg-slate-950 text-white">
+
+<div id="game-container">
+    <!-- 3D Corridor Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD (In-Game Overlay) -->
+    <div id="hud" class="hidden absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-4 z-10">
+        <!-- Top Row: Score, Progress, Pause, Chalkboard -->
+        <div class="w-full flex flex-col gap-2">
+            <div class="flex items-center justify-between gap-2">
+                <!-- Pause / Menu Button -->
+                <button id="btnPause" class="pointer-events-auto bg-slate-800/90 hover:bg-slate-700 text-white border border-slate-600 rounded-xl px-3 py-2 flex items-center gap-1.5 shadow-lg active:scale-95 transition">
+                    <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    <span class="text-xs font-bold uppercase tracking-wider">Меню</span>
+                </button>
+
+                <!-- Question Progress Badge -->
+                <div class="bg-slate-900/90 border border-slate-700 px-3.5 py-1.5 rounded-xl shadow-lg flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-semibold">Задача:</span>
+                    <span id="hudProgress" class="text-sm font-black text-sky-400">1 / 10</span>
+                </div>
+
+                <!-- Score / Bank Display -->
+                <div class="bg-amber-500/95 text-slate-950 border-2 border-amber-300 px-3.5 py-1.5 rounded-xl shadow-lg flex items-center gap-1.5">
+                    <span class="text-base">⭐</span>
+                    <span id="hudScore" class="text-base font-black">0</span>
+                </div>
+            </div>
+
+            <!-- Chalkboard Problem Display -->
+            <div class="chalkboard rounded-2xl p-3 sm:p-4 text-center relative">
+                <div id="hudTopicTitle" class="text-[11px] uppercase tracking-wider text-emerald-300/90 font-semibold mb-0.5">
+                    Тема уровня
+                </div>
+                <div id="hudProblemText" class="text-xl sm:text-2xl font-black text-white tracking-wide drop-shadow">
+                    24 + 16 = ?
+                </div>
+
+                <!-- Timer Bar -->
+                <div class="mt-2.5 flex items-center gap-2">
+                    <div class="flex-1 h-2.5 bg-black/50 rounded-full overflow-hidden p-0.5 border border-white/15">
+                        <div id="hudTimerBar" class="h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 rounded-full transition-all duration-75" style="width: 100%;"></div>
+                    </div>
+                    <span id="hudTimerText" class="text-xs font-extrabold text-amber-300 w-14 text-right">10.0 сек</span>
+                </div>
+
+                <!-- Current Reward / Penalty Info -->
+                <div id="hudBonusInfo" class="mt-1 text-[11px] text-emerald-200/80 font-medium">
+                    +30 за верный / -20 за ошибку
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Floating Feedback Container -->
+        <div id="feedbackContainer" class="flex-1 flex items-center justify-center pointer-events-none"></div>
+
+        <!-- Bottom Touch Controls & Hints -->
+        <div class="w-full flex flex-col items-center gap-2 pointer-events-auto pb-1">
+            <div class="text-[11px] text-slate-300/90 bg-slate-900/75 px-3 py-1 rounded-full border border-slate-700/70 backdrop-blur-sm">
+                Свайп ⬅️ ➡️ — смена дорожки &nbsp;|&nbsp; Свайп ⬆️ — ответить сразу
+            </div>
+            <div class="grid grid-cols-3 gap-2.5 w-full max-w-sm">
+                <button id="btnLeft" class="btn-3d bg-slate-800/90 hover:bg-slate-700 active:bg-slate-600 text-white border-b-4 border-slate-950 rounded-2xl py-3 flex items-center justify-center gap-1 font-bold text-sm shadow-lg">
+                    <span>⬅️</span> Влево
+                </button>
+                <button id="btnDash" class="btn-3d bg-gradient-to-b from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 border-b-4 border-amber-700 rounded-2xl py-3 flex items-center justify-center gap-1 font-black text-sm shadow-lg">
+                    <span>⚡</span> ОТВЕТИТЬ
+                </button>
+                <button id="btnRight" class="btn-3d bg-slate-800/90 hover:bg-slate-700 active:bg-slate-600 text-white border-b-4 border-slate-950 rounded-2xl py-3 flex items-center justify-center gap-1 font-bold text-sm shadow-lg">
+                    Вправо <span>➡️</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN MENU OVERLAY -->
+    <div id="menuScreen" class="absolute inset-0 z-20 bg-slate-950/85 backdrop-blur-md flex flex-col justify-between p-4 sm:p-5 overflow-y-auto custom-scroll">
+        <div>
+            <!-- Header & Total Score Bank -->
+            <div class="flex items-center justify-between gap-2 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-2xl shadow-lg border-2 border-amber-200">
+                        🏃‍♂️
+                    </div>
+                    <div>
+                        <h1 class="text-lg sm:text-xl font-black tracking-tight text-white leading-none">МАТЕМАТИЧЕСКИЙ</h1>
+                        <p class="text-xs font-bold text-amber-400 tracking-widest uppercase mt-0.5">Школьный Забег</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button id="btnToggleSound" title="Звук" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow">
+                        🔊
+                    </button>
+                    <div class="bg-amber-500 text-slate-950 border-2 border-amber-300 px-3.5 py-1.5 rounded-xl font-black flex items-center gap-1.5 shadow-lg">
+                        <span>⭐</span>
+                        <span id="menuTotalPoints">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player Current Stats Banner -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 mb-4 grid grid-cols-3 gap-2 text-center shadow-inner">
+                <div class="bg-slate-800/60 rounded-xl p-2">
+                    <div class="text-[11px] text-slate-400">Верный ответ</div>
+                    <div id="statReward" class="text-sm sm:text-base font-black text-emerald-400">+30 очков</div>
+                </div>
+                <div class="bg-slate-800/60 rounded-xl p-2">
+                    <div class="text-[11px] text-slate-400">Ошибка</div>
+                    <div id="statPenalty" class="text-sm sm:text-base font-black text-rose-400">-20 очков</div>
+                </div>
+                <div class="bg-slate-800/60 rounded-xl p-2">
+                    <div class="text-[11px] text-slate-400">Время на счёт</div>
+                    <div id="statTime" class="text-sm sm:text-base font-black text-sky-400">10 сек</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons: Upgrade Shop, Leaderboard & Game Mode Toggle -->
+            <div class="flex gap-2 mb-4">
+                <button id="btnOpenShop" class="btn-3d flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-2.5 px-3 rounded-2xl border-b-4 border-indigo-900 shadow-lg flex items-center justify-center gap-1.5 text-xs sm:text-sm">
+                    <span class="text-lg">🏪</span>
+                    <span>Магазин и Гардероб</span>
+                    <span id="shopBadge" class="hidden bg-amber-400 text-slate-950 text-xs font-black px-2 py-0.5 rounded-full">!</span>
+                </button>
+                <button id="btnOpenLeaderboard" class="btn-3d bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black py-2.5 px-3 rounded-2xl border-b-4 border-amber-700 shadow-lg flex flex-col items-center justify-center text-xs shrink-0">
+                    <span class="text-base">🏆</span>
+                    <span>Рекорды</span>
+                </button>
+                <button id="btnToggleEndless" class="btn-3d bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 px-3 rounded-2xl border-b-4 border-slate-950 flex flex-col items-center justify-center text-xs shrink-0">
+                    <span id="modeIcon" class="text-base">🏁</span>
+                    <span id="modeLabel">10 задач</span>
+                </button>
+            </div>
+
+            <!-- Level Selection List -->
+            <div class="mb-2 flex items-center justify-between">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Выберите тему забега:</h2>
+                <span class="text-[11px] text-slate-400">Нажмите для старта</span>
+            </div>
+            <div id="levelsList" class="space-y-2.5">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Footer Controls Hint -->
+        <div class="mt-4 pt-3 border-t border-slate-800 text-center text-xs text-slate-400">
+            Управление: свайпы пальцем ⬅️ ➡️ ⬆️ или клавиши со стрелками / A, D, W, Пробел
+        </div>
+    </div>
+
+    <!-- UPGRADE SHOP & WARDROBE MODAL -->
+    <div id="shopModal" class="hidden absolute inset-0 z-30 bg-slate-950/95 backdrop-blur-md flex flex-col justify-between p-4 sm:p-5 overflow-y-auto custom-scroll">
+        <div>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">🏪</span>
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-black text-white">Магазин и Гардероб</h2>
+                        <p class="text-xs text-slate-400">Прокачай навыки и настрой стиль ученика</p>
+                    </div>
+                </div>
+                <div class="bg-amber-400 text-slate-950 font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow">
+                    <span>⭐</span>
+                    <span id="shopPoints">0</span>
+                </div>
+            </div>
+
+            <!-- Tabs: Upgrades vs Wardrobe -->
+            <div class="flex gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-800 mb-4">
+                <button id="tabBtnUpgrades" class="flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition bg-indigo-600 text-white shadow">
+                    ⚡ Навыки (3)
+                </button>
+                <button id="tabBtnWardrobe" class="flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition text-slate-400 hover:text-white">
+                    👕 Внешний вид
+                </button>
+            </div>
+
+            <!-- TAB 1: UPGRADES -->
+            <div id="upgradesContainer" class="space-y-3.5">
+                <!-- Populated dynamically by JS -->
+            </div>
+
+            <!-- TAB 2: WARDROBE CUSTOMIZATION -->
+            <div id="wardrobeContainer" class="hidden space-y-4">
+                <!-- Live Character Preview Box -->
+                <div class="bg-gradient-to-b from-slate-800/90 to-slate-900/90 border border-slate-700 rounded-2xl p-3 flex items-center justify-between gap-4 shadow-inner">
+                    <div class="flex-1">
+                        <div class="text-xs font-bold uppercase tracking-wider text-sky-400 mb-1">Предпросмотр героя</div>
+                        <div class="text-sm font-black text-white" id="previewOutfitSummary">Классический стиль</div>
+                        <p class="text-[11px] text-slate-400 mt-1">
+                            Выбранные цвета сразу отображаются на бегущем ученике в коридоре!
+                        </p>
+                    </div>
+                    <div class="bg-slate-950/70 border border-slate-700/80 rounded-2xl p-1 shrink-0">
+                        <canvas id="wardrobePreviewCanvas" width="110" height="120" class="w-[110px] h-[120px]"></canvas>
+                    </div>
+                </div>
+
+                <!-- Customization Categories -->
+                <div id="wardrobeCategories" class="space-y-3.5">
+                    <!-- Populated dynamically by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800 flex gap-2">
+            <button id="btnResetProgress" class="bg-slate-800 hover:bg-rose-950/70 text-slate-400 hover:text-rose-300 text-xs font-semibold py-3 px-3 rounded-xl border border-slate-700 transition">
+                Сброс
+            </button>
+            <button id="btnCloseShop" class="btn-3d flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-2xl border-b-4 border-emerald-700 shadow-lg text-base">
+                Готово — Назад в меню
+            </button>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD / RECORDS MODAL -->
+    <div id="leaderboardModal" class="hidden absolute inset-0 z-30 bg-slate-950/95 backdrop-blur-md flex flex-col justify-between p-4 sm:p-5 overflow-y-auto custom-scroll">
+        <div>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">🏆</span>
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-black text-white">Таблица Рекордов</h2>
+                        <p class="text-xs text-slate-400">Рейтинг школы и личные достижения по темам</p>
+                    </div>
+                </div>
+                <div id="playerRankBadge" class="bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs font-black px-3 py-1.5 rounded-xl">
+                    Новичок
+                </div>
+            </div>
+
+            <!-- Player Name Input -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 mb-3 flex items-center gap-2">
+                <span class="text-lg">🎓</span>
+                <div class="flex-1">
+                    <label for="playerNameInput" class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold">Имя ученика в рейтинге:</label>
+                    <input id="playerNameInput" type="text" maxlength="18" placeholder="Введите имя..." class="w-full bg-transparent text-white font-black text-sm focus:outline-none border-b border-transparent focus:border-sky-400 pb-0.5" />
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] text-slate-400">Сумма рекордов</div>
+                    <div id="leaderboardTotalScore" class="text-sm font-black text-amber-400">0 ⭐</div>
+                </div>
+            </div>
+
+            <!-- Sub-tabs: School Ranking vs Level Records -->
+            <div class="flex gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-800 mb-3">
+                <button id="tabBtnSchoolBoard" class="flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition bg-amber-500 text-slate-950 shadow">
+                    🏅 Рейтинг школы
+                </button>
+                <button id="tabBtnLevelRecords" class="flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition text-slate-400 hover:text-white">
+                    📊 По уровням (5)
+                </button>
+            </div>
+
+            <!-- School Ranking List -->
+            <div id="schoolBoardContainer" class="space-y-2">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Personal Records per Level -->
+            <div id="levelRecordsContainer" class="hidden space-y-2.5">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800">
+            <button id="btnCloseLeaderboard" class="btn-3d w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-black py-3.5 rounded-2xl border-b-4 border-sky-700 shadow-lg text-base">
+                Назад в главное меню
+            </button>
+        </div>
+    </div>
+
+    <!-- LEVEL SUMMARY / FINISH MODAL -->
+    <div id="summaryModal" class="hidden absolute inset-0 z-30 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border-2 border-slate-700 rounded-3xl p-5 sm:p-6 w-full max-w-md text-center shadow-2xl">
+            <div id="summaryEmoji" class="text-5xl mb-2">🏆</div>
+            <h2 id="summaryTitle" class="text-2xl font-black text-white">Забег завершён!</h2>
+            <p id="summaryTopic" class="text-xs text-sky-400 font-semibold mt-0.5 mb-4">Тема уровня</p>
+
+            <div class="grid grid-cols-3 gap-2.5 bg-slate-800/90 border border-slate-700 rounded-2xl p-3 mb-4">
+                <div>
+                    <div class="text-[11px] text-slate-400">Верных</div>
+                    <div id="sumCorrect" class="text-lg font-black text-emerald-400">8 / 10</div>
+                </div>
+                <div class="border-x border-slate-700">
+                    <div class="text-[11px] text-slate-400">Заработано</div>
+                    <div id="sumScore" class="text-lg font-black text-amber-400">+200</div>
+                </div>
+                <div>
+                    <div class="text-[11px] text-slate-400">Всего очков</div>
+                    <div id="sumTotal" class="text-lg font-black text-white">540</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2.5">
+                <button id="btnSummaryReplay" class="btn-3d w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-2xl border-b-4 border-emerald-700 shadow-lg">
+                    🔄 Пробежать ещё раз
+                </button>
+                <button id="btnSummaryShop" class="btn-3d w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-2xl border-b-4 border-indigo-900 shadow-lg">
+                    ⚡ Прокачка персонажа
+                </button>
+                <button id="btnSummaryMenu" class="btn-3d w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-2xl border-b-4 border-slate-950">
+                    📚 Выбрать другой уровень
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * МАТЕМАТИЧЕСКИЙ ЗАБЕГ (Math Corridor 3-Lane Runner)
+ * Полная реализация с 3D-перспективой на Canvas, свайпами, звуковым синтезатором,
+ * 5 темами математики и системой прокачки.
+ */
+
+// ======================= ЗВУКОВОЙ ДВИЖОК (Web Audio API) =======================
+class SoundManager {
+    constructor() {
+        this.ctx = null;
+        this.enabled = true;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    playTone(freq, type, duration, vol = 0.12, slideFreq = null) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            if (slideFreq) {
+                osc.frequency.exponentialRampToValueAtTime(slideFreq, this.ctx.currentTime + duration);
+            }
+            gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start();
+            osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+    }
+
+    swipe() {
+        this.playTone(320, 'sine', 0.09, 0.1, 520);
+    }
+
+    dash() {
+        this.playTone(260, 'triangle', 0.18, 0.15, 780);
+    }
+
+    correct() {
+        this.playTone(523.25, 'triangle', 0.12, 0.16);
+        setTimeout(() => this.playTone(659.25, 'triangle', 0.12, 0.16), 90);
+        setTimeout(() => this.playTone(783.99, 'triangle', 0.25, 0.18), 180);
+    }
+
+    wrong() {
+        this.playTone(220, 'sawtooth', 0.18, 0.14, 150);
+        setTimeout(() => this.playTone(160, 'sawtooth', 0.28, 0.14, 110), 140);
+    }
+
+    upgrade() {
+        this.playTone(440, 'sine', 0.1, 0.15);
+        setTimeout(() => this.playTone(587.33, 'sine', 0.12, 0.15), 80);
+        setTimeout(() => this.playTone(880, 'sine', 0.25, 0.18), 160);
+    }
+}
+
+const sfx = new SoundManager();
+
+// ======================= КОНФИГУРАЦИЯ ПРОКАЧКИ И УРОВНЕЙ =======================
+const UPGRADE_CONFIG = {
+    reward: {
+        id: 'reward',
+        title: 'Очки за правильный ответ',
+        desc: 'Увеличивает награду за каждую решённую задачу',
+        icon: '💎',
+        values: [30, 40, 50, 65, 80, 100],
+        costs: [0, 60, 120, 200, 320, 500],
+        format: v => `+${v} очков`
+    },
+    penalty: {
+        id: 'penalty',
+        title: 'Защита от ошибок',
+        desc: 'Уменьшает штраф при выборе неверной дорожки',
+        icon: '🛡️',
+        values: [20, 16, 12, 8, 5, 2],
+        costs: [0, 50, 100, 180, 280, 420],
+        format: v => `-${v} очков`
+    },
+    time: {
+        id: 'time',
+        title: 'Запас времени на ответ',
+        desc: 'Коридор длиннее — больше секунд на размышление',
+        icon: '⏱️',
+        values: [10, 12, 14, 16, 18, 20],
+        costs: [0, 50, 110, 190, 300, 450],
+        format: v => `${v} сек`
+    }
+};
+
+const LEVELS = [
+    {
+        id: 1,
+        title: '1. Сравнение натуральных чисел',
+        subtitle: 'Больше, меньше или равно, выбор наибольшего и наименьшего',
+        icon: '⚖️',
+        color: 'from-sky-500 to-blue-600',
+        border: 'border-blue-800'
+    },
+    {
+        id: 2,
+        title: '2. Деление с остатком',
+        subtitle: 'Нахождение неполного частного, остатка и делимого',
+        icon: '➗',
+        color: 'from-emerald-500 to-teal-600',
+        border: 'border-teal-800'
+    },
+    {
+        id: 3,
+        title: '3. Сложение и вычитание. Свойства',
+        subtitle: 'Переместительное и сочетательное свойства для быстрого счёта',
+        icon: '➕',
+        color: 'from-amber-500 to-orange-600',
+        border: 'border-orange-800'
+    },
+    {
+        id: 4,
+        title: '4. Умножение и деление. Свойства',
+        subtitle: 'Распределительное свойство умножения и удобный счёт',
+        icon: '✖️',
+        color: 'from-purple-500 to-indigo-600',
+        border: 'border-indigo-800'
+    },
+    {
+        id: 5,
+        title: '5. Порядок действий в вычислениях',
+        subtitle: 'Выражения со скобками и без скобок в несколько действий',
+        icon: '🧮',
+        color: 'from-rose-500 to-pink-600',
+        border: 'border-pink-800'
+    }
+];
+
+// ======================= ГАРДЕРОБ (НАСТРОЙКА ВНЕШНЕГО ВИДА УЧЕНИКА) =======================
+const WARDROBE_CATALOG = {
+    uniform: {
+        title: 'Школьная форма / Толстовка',
+        icon: '🧥',
+        items: [
+            { id: 'blue', name: 'Классический синий', body: '#2563eb', sleeve: '#3b82f6', cost: 0 },
+            { id: 'emerald', name: 'Изумрудный лицей', body: '#059669', sleeve: '#10b981', cost: 80 },
+            { id: 'crimson', name: 'Бордовый чемпион', body: '#be123c', sleeve: '#f43f5e', cost: 120 },
+            { id: 'violet', name: 'Фиолетовый космос', body: '#6d28d9', sleeve: '#8b5cf6', cost: 160 },
+            { id: 'graphite', name: 'Тёмный графит', body: '#334155', sleeve: '#64748b', cost: 220 }
+        ]
+    },
+    backpack: {
+        title: 'Школьный рюкзак',
+        icon: '🎒',
+        items: [
+            { id: 'amber', name: 'Яркий оранжевый', main: '#f59e0b', pocket: '#d97706', border: '#92400e', cost: 0 },
+            { id: 'mint', name: 'Мятный фреш', main: '#14b8a6', pocket: '#0d9488', border: '#115e59', cost: 70 },
+            { id: 'neonblue', name: 'Неоновый синий', main: '#0ea5e9', pocket: '#0284c7', border: '#075985', cost: 110 },
+            { id: 'ruby', name: 'Алый драйв', main: '#ef4444', pocket: '#dc2626', border: '#991b1b', cost: 150 },
+            { id: 'gold', name: 'Золотой отличник', main: '#eab308', pocket: '#ca8a04', border: '#854d0e', cost: 240 }
+        ]
+    },
+    sneakers: {
+        title: 'Спортивные кроссовки',
+        icon: '👟',
+        items: [
+            { id: 'red', name: 'Красные спринтеры', main: '#ef4444', stripe: '#ffffff', cost: 0 },
+            { id: 'white', name: 'Белая классика', main: '#f8fafc', stripe: '#2563eb', cost: 60 },
+            { id: 'lime', name: 'Лаймовый турбо', main: '#84cc16', stripe: '#0f172a', cost: 110 },
+            { id: 'cyan', name: 'Голубой импульс', main: '#06b6d4', stripe: '#fef08a', cost: 150 },
+            { id: 'gold', name: 'Золотые крылья', main: '#facc15', stripe: '#78350f', cost: 220 }
+        ]
+    }
+};
+
+// Виртуальные соперники для школьной таблицы рекордов
+const SCHOOL_RIVALS = [
+    { name: 'Артём (Олимпиадник)', score: 1250, badge: '🥇 Грандмастер' },
+    { name: 'София (Отличница)', score: 920, badge: '🥈 Профи счёта' },
+    { name: 'Максим (5 «А»)', score: 680, badge: '🥉 Знаток' },
+    { name: 'Алина (5 «Б»)', score: 450, badge: '⭐ Любитель' },
+    { name: 'Даниил (5 «В»)', score: 240, badge: '🏃 Быстрый шаг' },
+    { name: 'Кирилл (Новичок)', score: 110, badge: '🌱 Стажёр' }
+];
+
+// ======================= СОХРАНЕНИЕ ПРОГРЕССА =======================
+const STORAGE_KEY = 'math_corridor_runner_v1';
+
+let playerData = {
+    playerName: 'Ученик',
+    points: 0,
+    upgrades: {
+        reward: 0,
+        penalty: 0,
+        time: 0
+    },
+    wardrobe: {
+        unlocked: {
+            uniform: ['blue'],
+            backpack: ['amber'],
+            sneakers: ['red']
+        },
+        equipped: {
+            uniform: 'blue',
+            backpack: 'amber',
+            sneakers: 'red'
+        }
+    },
+    bestScores: {}, // { [levelId]: { score, accuracy, correct, total, date } }
+    recentRuns: [],
+    endlessMode: false
+};
+
+function loadProgress() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            playerData.playerName = parsed.playerName || 'Ученик';
+            playerData.points = Number(parsed.points) || 0;
+            if (parsed.upgrades) {
+                playerData.upgrades.reward = Math.min(parsed.upgrades.reward || 0, UPGRADE_CONFIG.reward.values.length - 1);
+                playerData.upgrades.penalty = Math.min(parsed.upgrades.penalty || 0, UPGRADE_CONFIG.penalty.values.length - 1);
+                playerData.upgrades.time = Math.min(parsed.upgrades.time || 0, UPGRADE_CONFIG.time.values.length - 1);
+            }
+            if (parsed.wardrobe && parsed.wardrobe.unlocked && parsed.wardrobe.equipped) {
+                playerData.wardrobe = parsed.wardrobe;
+            }
+            playerData.bestScores = parsed.bestScores || {};
+            playerData.recentRuns = parsed.recentRuns || [];
+            playerData.endlessMode = !!parsed.endlessMode;
+        }
+    } catch (e) {}
+}
+
+function saveProgress() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(playerData));
+    } catch (e) {}
+}
+
+function getEquippedStyle() {
+    const uId = playerData.wardrobe?.equipped?.uniform || 'blue';
+    const bId = playerData.wardrobe?.equipped?.backpack || 'amber';
+    const sId = playerData.wardrobe?.equipped?.sneakers || 'red';
+
+    const uniform = WARDROBE_CATALOG.uniform.items.find(i => i.id === uId) || WARDROBE_CATALOG.uniform.items[0];
+    const backpack = WARDROBE_CATALOG.backpack.items.find(i => i.id === bId) || WARDROBE_CATALOG.backpack.items[0];
+    const sneakers = WARDROBE_CATALOG.sneakers.items.find(i => i.id === sId) || WARDROBE_CATALOG.sneakers.items[0];
+
+    return { uniform, backpack, sneakers };
+}
+
+function getTotalBestScore() {
+    let sum = 0;
+    Object.values(playerData.bestScores || {}).forEach(rec => {
+        if (rec && typeof rec.score === 'number' && rec.score > 0) {
+            sum += rec.score;
+        }
+    });
+    return sum;
+}
+
+function getPlayerRankTitle(totalBest) {
+    if (totalBest >= 1200) return '🏆 Победитель олимпиады';
+    if (totalBest >= 800) return '🥇 Магистр математики';
+    if (totalBest >= 450) return '🥈 Отличник забега';
+    if (totalBest >= 200) return '🥉 Уверенный счетовод';
+    return '🌱 Новичок школы';
+}
+
+function getRewardPoints() {
+    return UPGRADE_CONFIG.reward.values[playerData.upgrades.reward];
+}
+function getPenaltyPoints() {
+    return UPGRADE_CONFIG.penalty.values[playerData.upgrades.penalty];
+}
+function getQuestionDuration() {
+    return UPGRADE_CONFIG.time.values[playerData.upgrades.time];
+}
+
+// ======================= ГЕНЕРАТОР ЗАДАЧ ПО 5 ТЕМАМ =======================
+function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function makeNumericOptions(correct, offsets = [-10, -2, -1, 1, 2, 10]) {
+    const set = new Set([String(correct)]);
+    const candidates = shuffleArray(offsets);
+    for (const off of candidates) {
+        const val = correct + off;
+        if (val >= 0 && !set.has(String(val))) {
+            set.add(String(val));
+            if (set.size === 3) break;
+        }
+    }
+    while (set.size < 3) {
+        const fallback = Math.max(0, correct + randInt(1, 15));
+        set.add(String(fallback));
+    }
+    const options = shuffleArray(Array.from(set));
+    return {
+        options,
+        correctIndex: options.indexOf(String(correct))
+    };
+}
+
+function generateProblem(levelId) {
+    switch (levelId) {
+        case 1: return generateLevel1();
+        case 2: return generateLevel2();
+        case 3: return generateLevel3();
+        case 4: return generateLevel4();
+        case 5: return generateLevel5();
+        default: return generateLevel1();
+    }
+}
+
+// Уровень 1: Сравнение натуральных чисел
+function generateLevel1() {
+    const variant = randInt(1, 3);
+    if (variant === 1) {
+        // Знак сравнения между выражениями
+        const a = randInt(12, 45) * 10;
+        const b = randInt(15, 65);
+        const left = a + b;
+        const delta = [-10, 0, 10][randInt(0, 2)];
+        const right = left + delta;
+        const correctSign = left > right ? '>' : (left < right ? '<' : '=');
+        const options = ['<', '=', '>'];
+        return {
+            text: `Сравните: ${a} + ${b}  ?  ${right}`,
+            options,
+            correctIndex: options.indexOf(correctSign)
+        };
+    } else if (variant === 2) {
+        // Выбери наибольшее число на дорожках
+        const base = randInt(3, 9) * 1000;
+        const d1 = randInt(1, 8);
+        const d2 = d1 + 1;
+        const n1 = base + d1 * 100 + d2 * 10 + randInt(1, 9);
+        const n2 = base + d2 * 100 + d1 * 10 + randInt(1, 9);
+        const n3 = base + d1 * 100 + d1 * 10 + randInt(0, 9);
+        const nums = shuffleArray([n1, n2, n3]);
+        const maxVal = Math.max(...nums);
+        return {
+            text: `Выберите НАИБОЛЬШЕЕ число:`,
+            options: nums.map(String),
+            correctIndex: nums.indexOf(maxVal)
+        };
+    } else {
+        // Выбери наименьшее число на дорожках
+        const base = randInt(10, 89) * 1000;
+        const a = base + randInt(102, 199);
+        const b = base + randInt(201, 299);
+        const c = base + randInt(15, 98);
+        const nums = shuffleArray([a, b, c]);
+        const minVal = Math.min(...nums);
+        return {
+            text: `Выберите НАИМЕНЬШЕЕ число:`,
+            options: nums.map(String),
+            correctIndex: nums.indexOf(minVal)
+        };
+    }
+}
+
+// Уровень 2: Деление с остатком
+function generateLevel2() {
+    const variant = randInt(1, 3);
+    const divisor = randInt(4, 9);
+    const quotient = randInt(4, 11);
+    const remainder = randInt(1, divisor - 1);
+    const dividend = divisor * quotient + remainder;
+
+    if (variant === 1) {
+        // Найти остаток
+        const possible = [];
+        for (let r = 0; r < divisor; r++) {
+            if (r !== remainder) possible.push(r);
+        }
+        const shuf = shuffleArray(possible);
+        const opts = shuffleArray([String(remainder), String(shuf[0]), String(shuf[1] ?? divisor)]);
+        return {
+            text: `Найдите остаток: ${dividend} : ${divisor}`,
+            options: opts,
+            correctIndex: opts.indexOf(String(remainder))
+        };
+    } else if (variant === 2) {
+        // Найти неполное частное
+        const { options, correctIndex } = makeNumericOptions(quotient, [-2, -1, 1, 2]);
+        return {
+            text: `Неполное частное: ${dividend} : ${divisor}`,
+            options,
+            correctIndex
+        };
+    } else {
+        // Найти делимое по частному и остатку
+        const qSmall = randInt(3, 8);
+        const dSmall = randInt(4, 8);
+        const rSmall = randInt(1, dSmall - 1);
+        const ans = dSmall * qSmall + rSmall;
+        const { options, correctIndex } = makeNumericOptions(ans, [-dSmall, -1, 1, 2, dSmall]);
+        return {
+            text: `? : ${dSmall} = ${qSmall} (ост. ${rSmall})`,
+            options,
+            correctIndex
+        };
+    }
+}
+
+// Уровень 3: Сложение и вычитание. Сочетательное и переместительное свойства
+function generateLevel3() {
+    const variant = randInt(1, 3);
+    if (variant === 1) {
+        // Удобное сложение до круглого числа: (a + b) + c, где a + c = 100
+        const a = randInt(11, 89);
+        const c = 100 - a;
+        const b = randInt(25, 95);
+        const ans = 100 + b;
+        const { options, correctIndex } = makeNumericOptions(ans, [-20, -10, -2, 2, 10, 20]);
+        return {
+            text: `(${a} + ${b}) + ${c} = ?`,
+            options,
+            correctIndex
+        };
+    } else if (variant === 2) {
+        // Вычитание суммы из числа: (100 + a) - (a + b)
+        const a = randInt(21, 79);
+        const hundred = randInt(1, 3) * 100;
+        const b = randInt(15, 70);
+        const total = hundred + a;
+        const ans = hundred - b;
+        const { options, correctIndex } = makeNumericOptions(ans, [-20, -10, -5, 5, 10, 20]);
+        return {
+            text: `${total} - (${a} + ${b}) = ?`,
+            options,
+            correctIndex
+        };
+    } else {
+        // Вычитание из суммы: (a + b) - c, где a - c = круглое число
+        const tail = randInt(12, 68);
+        const roundPart = randInt(1, 2) * 100;
+        const a = roundPart + tail;
+        const b = randInt(25, 85);
+        const ans = roundPart + b;
+        const { options, correctIndex } = makeNumericOptions(ans, [-20, -10, -3, 3, 10, 20]);
+        return {
+            text: `(${a} + ${b}) - ${tail} = ?`,
+            options,
+            correctIndex
+        };
+    }
+}
+
+// Уровень 4: Умножение и деление. Распределительное свойство
+function generateLevel4() {
+    const variant = randInt(1, 4);
+    if (variant === 1) {
+        // a * c + b * c = (a + b) * c, где a + b = 10 или 20
+        const sumAB = [10, 20][randInt(0, 1)];
+        const a = randInt(2, sumAB - 2);
+        const b = sumAB - a;
+        const c = randInt(4, 15);
+        const ans = sumAB * c;
+        const { options, correctIndex } = makeNumericOptions(ans, [-c, -10, 10, c, 20]);
+        return {
+            text: `${a} · ${c} + ${b} · ${c} = ?`,
+            options,
+            correctIndex
+        };
+    } else if (variant === 2) {
+        // a * c - b * c = (a - b) * c, где a - b = 10
+        const b = randInt(11, 39);
+        const a = b + 10;
+        const c = randInt(4, 16);
+        const ans = 10 * c;
+        const { options, correctIndex } = makeNumericOptions(ans, [-20, -10, -c, c, 10, 20]);
+        return {
+            text: `${a} · ${c} - ${b} · ${c} = ?`,
+            options,
+            correctIndex
+        };
+    } else if (variant === 3) {
+        // Сочетательное свойство умножения с 25 * 4 или 5 * 2
+        const pair = randInt(0, 1) === 0 ? [25, 4, 100] : [50, 2, 100];
+        const k = randInt(3, 9);
+        const ans = pair[2] * k;
+        const { options, correctIndex } = makeNumericOptions(ans, [-100, -50, 50, 100, 200]);
+        return {
+            text: `${pair[0]} · ${k} · ${pair[1]} = ?`,
+            options,
+            correctIndex
+        };
+    } else {
+        // Умножение числа близкого к 100: (100 + d) * m
+        const d = randInt(1, 5);
+        const m = randInt(3, 8);
+        const ans = (100 + d) * m;
+        const { options, correctIndex } = makeNumericOptions(ans, [-10, -m, m, 10, 100]);
+        return {
+            text: `${100 + d} · ${m} = ?`,
+            options,
+            correctIndex
+        };
+    }
+}
+
+// Уровень 5: Порядок действий в вычислениях
+function generateLevel5() {
+    const variant = randInt(1, 4);
+    if (variant === 1) {
+        // a + b * c
+        const b = randInt(3, 9);
+        const c = randInt(4, 9);
+        const a = randInt(10, 50);
+        const ans = a + b * c;
+        const trap = (a + b) * c; // Частая ошибка учеников
+        const { options, correctIndex } = makeNumericOptions(ans, [trap - ans, -10, -2, 2, 10]);
+        return {
+            text: `${a} + ${b} · ${c} = ?`,
+            options,
+            correctIndex
+        };
+    } else if (variant === 2) {
+        // a - b : c
+        const c = randInt(3, 8);
+        const q = randInt(4, 9);
+        const b = c * q;
+        const a = randInt(q + 15, 80);
+        const ans = a - q;
+        const { options, correctIndex } = makeNumericOptions(ans, [-10, -3, -1, 1, 3, 10]);
+        return {
+            text: `${a} - ${b} : ${c} = ?`,
+            options,
+            correctIndex
+        };
+    } else if (variant === 3) {
+        // (a - b) : c + d
+        const c = randInt(3, 7);
+        const q = randInt(3, 8);
+        const b = randInt(10, 30);
+        const a = b + c * q;
+        const d = randInt(10, 40);
+        const ans = q + d;
+        const { options, correctIndex } = makeNumericOptions(ans, [-10, -2, -1, 1, 2, 10]);
+        return {
+            text: `(${a} - ${b}) : ${c} + ${d} = ?`,
+            options,
+            correctIndex
+        };
+    } else {
+        // a * b - c : d
+        const a = randInt(5, 9);
+        const b = randInt(5, 8);
+        const d = randInt(3, 6);
+        const q = randInt(2, 6);
+        const c = d * q;
+        const ans = a * b - q;
+        const { options, correctIndex } = makeNumericOptions(ans, [-8, -2, -1, 1, 2, 8]);
+        return {
+            text: `${a} · ${b} - ${c} : ${d} = ?`,
+            options,
+            correctIndex
+        };
+    }
+}
+
+// ======================= СОСТОЯНИЕ ИГРЫ И 3D КОРИДОРА =======================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const gameState = {
+    mode: 'menu', // 'menu' | 'playing' | 'summary'
+    levelId: 1,
+    questionIndex: 0,
+    totalQuestions: 10,
+    correctCount: 0,
+    sessionScore: 0,
+
+    // Персонаж (дорожки: 0 - левая, 1 - центральная, 2 - правая)
+    targetLane: 1,
+    currentLaneX: 1, // Плавная интерполяция между 0, 1, 2
+    runCycle: 0,
+    dashActive: false,
+
+    // Текущая задача и ворота с ответами
+    currentProblem: null,
+    gateZ: 1.0, // 1.0 (далеко в начале коридора) -> 0.0 (у игрока)
+    timeRemaining: 10,
+    totalTimeForQuestion: 10,
+    gateResolved: false,
+    gatePassEffect: 0,
+
+    // Анимация окружения коридора
+    corridorScroll: 0,
+    particles: []
+};
+
+function resizeCanvas() {
+    const container = document.getElementById('game-container');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = container.clientWidth * dpr;
+    canvas.height = container.clientHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resizeCanvas);
+
+// ======================= ЛОГИКА ЗАПУСКА И ПРОХОЖДЕНИЯ =======================
+function startLevel(levelId) {
+    sfx.init();
+    gameState.levelId = levelId;
+    gameState.mode = 'playing';
+    gameState.questionIndex = 0;
+    gameState.correctCount = 0;
+    gameState.sessionScore = 0;
+    gameState.targetLane = 1;
+    gameState.currentLaneX = 1;
+    gameState.particles = [];
+
+    document.getElementById('menuScreen').classList.add('hidden');
+    document.getElementById('summaryModal').classList.add('hidden');
+    document.getElementById('shopModal').classList.add('hidden');
+    document.getElementById('hud').classList.remove('hidden');
+
+    const levelObj = LEVELS.find(l => l.id === levelId);
+    document.getElementById('hudTopicTitle').textContent = levelObj ? levelObj.title : '';
+
+    spawnNextQuestion();
+    updateHudUI();
+}
+
+function spawnNextQuestion() {
+    if (!playerData.endlessMode && gameState.questionIndex >= gameState.totalQuestions) {
+        finishLevel();
+        return;
+    }
+
+    gameState.questionIndex++;
+    gameState.currentProblem = generateProblem(gameState.levelId);
+    gameState.totalTimeForQuestion = getQuestionDuration();
+    gameState.timeRemaining = gameState.totalTimeForQuestion;
+    gameState.gateZ = 1.0;
+    gameState.dashActive = false;
+    gameState.gateResolved = false;
+
+    document.getElementById('hudProblemText').textContent = gameState.currentProblem.text;
+    updateHudUI();
+}
+
+function updateHudUI() {
+    const progText = playerData.endlessMode
+        ? `#${gameState.questionIndex}`
+        : `${gameState.questionIndex} / ${gameState.totalQuestions}`;
+    document.getElementById('hudProgress').textContent = progText;
+    document.getElementById('hudScore').textContent = playerData.points;
+    document.getElementById('hudBonusInfo').textContent =
+        `+${getRewardPoints()} за верный / -${getPenaltyPoints()} за ошибку`;
+}
+
+function moveLane(dir) {
+    if (gameState.mode !== 'playing' || gameState.gateResolved) return;
+    const next = Math.max(0, Math.min(2, gameState.targetLane + dir));
+    if (next !== gameState.targetLane) {
+        gameState.targetLane = next;
+        sfx.swipe();
+    }
+}
+
+function triggerDash() {
+    if (gameState.mode !== 'playing' || gameState.gateResolved || gameState.dashActive) return;
+    gameState.dashActive = true;
+    sfx.dash();
+}
+
+function evaluateCurrentGate() {
+    if (gameState.gateResolved) return;
+    gameState.gateResolved = true;
+
+    const chosenLane = gameState.targetLane;
+    const isCorrect = chosenLane === gameState.currentProblem.correctIndex;
+    const reward = getRewardPoints();
+    const penalty = getPenaltyPoints();
+
+    if (isCorrect) {
+        gameState.correctCount++;
+        gameState.sessionScore += reward;
+        playerData.points += reward;
+        sfx.correct();
+        showFloatingFeedback(`ВЕРНО! +${reward} ⭐`, true);
+        spawnBurstParticles('#34d399');
+    } else {
+        const rightAnswer = gameState.currentProblem.options[gameState.currentProblem.correctIndex];
+        gameState.sessionScore -= penalty;
+        playerData.points = Math.max(0, playerData.points - penalty);
+        sfx.wrong();
+        showFloatingFeedback(`ОШИБКА! -${penalty} (Ответ: ${rightAnswer})`, false);
+        spawnBurstParticles('#fb7185');
+    }
+
+    saveProgress();
+    updateHudUI();
+
+    setTimeout(() => {
+        if (gameState.mode === 'playing') {
+            spawnNextQuestion();
+        }
+    }, 650);
+}
+
+function showFloatingFeedback(text, isPositive) {
+    const container = document.getElementById('feedbackContainer');
+    container.innerHTML = '';
+    const badge = document.createElement('div');
+    badge.className = `floating-feedback px-5 py-2.5 rounded-2xl font-black text-base sm:text-lg shadow-2xl border-2 ${
+        isPositive
+            ? 'bg-emerald-500 text-slate-950 border-emerald-200'
+            : 'bg-rose-600 text-white border-rose-300'
+    }`;
+    badge.textContent = text;
+    container.appendChild(badge);
+}
+
+function spawnBurstParticles(color) {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    const laneOffset = (gameState.currentLaneX - 1) * (w * 0.25);
+    const cx = w / 2 + laneOffset;
+    const cy = h * 0.75;
+
+    for (let i = 0; i < 22; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 80 + Math.random() * 180;
+        gameState.particles.push({
+            x: cx,
+            y: cy,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 60,
+            life: 0.65,
+            maxLife: 0.65,
+            color,
+            size: 4 + Math.random() * 5
+        });
+    }
+}
+
+function finishLevel() {
+    gameState.mode = 'summary';
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('summaryModal').classList.remove('hidden');
+
+    const lvl = LEVELS.find(l => l.id === gameState.levelId);
+    const ratio = gameState.questionIndex > 0 ? gameState.correctCount / gameState.questionIndex : 0;
+    const accuracyPct = Math.round(ratio * 100);
+
+    // Сохранение личного рекорда для данного уровня
+    const prevBest = playerData.bestScores[gameState.levelId];
+    const isNewRecord = !prevBest || gameState.sessionScore > prevBest.score;
+    if (isNewRecord) {
+        playerData.bestScores[gameState.levelId] = {
+            score: Math.max(0, gameState.sessionScore),
+            accuracy: accuracyPct,
+            correct: gameState.correctCount,
+            total: gameState.questionIndex,
+            date: new Date().toLocaleDateString('ru-RU')
+        };
+    }
+
+    // Сохранение в историю забегов
+    playerData.recentRuns.unshift({
+        levelId: gameState.levelId,
+        score: gameState.sessionScore,
+        accuracy: accuracyPct,
+        date: new Date().toLocaleDateString('ru-RU')
+    });
+    if (playerData.recentRuns.length > 10) playerData.recentRuns.pop();
+    saveProgress();
+
+    document.getElementById('summaryEmoji').textContent = ratio >= 0.8 ? '🏆' : (ratio >= 0.5 ? '👍' : '💪');
+    document.getElementById('summaryTitle').textContent = isNewRecord && gameState.sessionScore > 0
+        ? 'Новый рекорд уровня! 🎉'
+        : (ratio >= 0.8 ? 'Отличный результат!' : (ratio >= 0.5 ? 'Хорошая пробежка!' : 'Попробуй ещё раз!'));
+    document.getElementById('summaryTopic').textContent = lvl ? lvl.title : '';
+    document.getElementById('sumCorrect').textContent = `${gameState.correctCount} / ${gameState.questionIndex}`;
+    document.getElementById('sumScore').textContent =
+        (gameState.sessionScore >= 0 ? `+${gameState.sessionScore}` : `${gameState.sessionScore}`);
+    document.getElementById('sumTotal').textContent = playerData.points;
+
+    renderMenuUI();
+}
+
+// ======================= ОТРИСОВКА 3D ШКОЛЬНОГО КОРИДОРА И УЧЕНИКА =======================
+function project3D(laneNormalized, zDepth, w, h) {
+    // laneNormalized: -1.5 (левый край пола) .. +1.5 (правый край пола)
+    // zDepth: 1.0 (дальняя стена/горизонт) .. 0.0 (передний край у ног игрока)
+    const horizonY = h * 0.30;
+    const bottomY = h * 0.90;
+
+    // Нелинейная перспектива для плавного ощущения глубины
+    const perspectiveFactor = 1 / (1 + zDepth * 2.8);
+    const minFactor = 1 / 3.8;
+    const normalizedScreenProgress = (perspectiveFactor - minFactor) / (1 - minFactor);
+
+    const screenY = horizonY + normalizedScreenProgress * (bottomY - horizonY);
+    const corridorHalfWidthFar = w * 0.12;
+    const corridorHalfWidthNear = w * 0.46;
+    const currentHalfWidth = corridorHalfWidthFar + normalizedScreenProgress * (corridorHalfWidthNear - corridorHalfWidthFar);
+
+    const screenX = w * 0.5 + (laneNormalized / 1.5) * currentHalfWidth;
+    const scale = 0.25 + normalizedScreenProgress * 0.75;
+
+    return { x: screenX, y: screenY, scale, halfWidth: currentHalfWidth };
+}
+
+function drawCorridorEnvironment(w, h) {
+    const horizonY = h * 0.30;
+    const farHalfW = w * 0.12;
+    const nearHalfW = w * 0.46;
+
+    // 1. Мягкий пастельный потолок с плавным градиентом к горизонту
+    const ceilGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+    ceilGrad.addColorStop(0, '#1e293b');
+    ceilGrad.addColorStop(0.65, '#283548');
+    ceilGrad.addColorStop(1, '#334155');
+    ctx.fillStyle = ceilGrad;
+    ctx.fillRect(0, 0, w, horizonY);
+
+    // 2. Спокойные мягкие стены коридора без резкого контраста
+    const leftWallGrad = ctx.createLinearGradient(0, horizonY * 0.5, w * 0.5 - farHalfW, horizonY);
+    leftWallGrad.addColorStop(0, '#334155');
+    leftWallGrad.addColorStop(0.6, '#2b394d');
+    leftWallGrad.addColorStop(1, '#243242');
+    ctx.fillStyle = leftWallGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(w * 0.5 - farHalfW, horizonY);
+    ctx.lineTo(w * 0.5 - nearHalfW, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fill();
+
+    const rightWallGrad = ctx.createLinearGradient(w, horizonY * 0.5, w * 0.5 + farHalfW, horizonY);
+    rightWallGrad.addColorStop(0, '#334155');
+    rightWallGrad.addColorStop(0.6, '#2b394d');
+    rightWallGrad.addColorStop(1, '#243242');
+    ctx.fillStyle = rightWallGrad;
+    ctx.beginPath();
+    ctx.moveTo(w, 0);
+    ctx.lineTo(w * 0.5 + farHalfW, horizonY);
+    ctx.lineTo(w * 0.5 + nearHalfW, h);
+    ctx.lineTo(w, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // 3. Пол коридора в тёплых приглушённых тонах
+    const floorGrad = ctx.createLinearGradient(0, horizonY, 0, h);
+    floorGrad.addColorStop(0, '#293548');
+    floorGrad.addColorStop(0.35, '#3b495e');
+    floorGrad.addColorStop(1, '#475569');
+    ctx.fillStyle = floorGrad;
+    ctx.beginPath();
+    ctx.moveTo(w * 0.5 - farHalfW, horizonY);
+    ctx.lineTo(w * 0.5 + farHalfW, horizonY);
+    ctx.lineTo(w * 0.5 + nearHalfW * 1.15, h);
+    ctx.lineTo(w * 0.5 - nearHalfW * 1.15, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // 4. Плавные секции стен, шкафчиков и мягкого света (без ряби и мелькания)
+    const numSegments = 8;
+    const step = 1 / numSegments;
+    const offset = ((gameState.corridorScroll % step) + step) % step;
+
+    for (let i = numSegments; i >= 0; i--) {
+        const z = (i * step) - offset;
+        if (z <= 0.001 || z >= 1.0) continue;
+
+        const nextZ = Math.max(0.001, z - step * 0.72);
+        const leftEdge = project3D(-1.5, z, w, h);
+        const rightEdge = project3D(1.5, z, w, h);
+        const nextLeft = project3D(-1.5, nextZ, w, h);
+        const nextRight = project3D(1.5, nextZ, w, h);
+
+        // Плавное затухание вдали (эффект атмосферной дымки у горизонта)
+        const distanceFade = Math.pow(1 - z, 1.35);
+
+        // Деликатная линия плитки на полу
+        ctx.strokeStyle = `rgba(203, 213, 225, ${0.14 * distanceFade})`;
+        ctx.lineWidth = Math.max(1, 2 * leftEdge.scale);
+        ctx.beginPath();
+        ctx.moveTo(leftEdge.x, leftEdge.y);
+        ctx.lineTo(rightEdge.x, rightEdge.y);
+        ctx.stroke();
+
+        // Высота стеновых панелей / шкафчиков
+        const wallTopCur = horizonY - (leftEdge.y - horizonY) * 0.78;
+        const wallTopNext = horizonY - (nextLeft.y - horizonY) * 0.78;
+
+        // Левая мягкая панель шкафчика
+        ctx.fillStyle = `rgba(71, 98, 136, ${0.38 * distanceFade})`;
+        ctx.strokeStyle = `rgba(148, 163, 184, ${0.22 * distanceFade})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(leftEdge.x, leftEdge.y - 2);
+        ctx.lineTo(leftEdge.x, wallTopCur);
+        ctx.lineTo(nextLeft.x, wallTopNext);
+        ctx.lineTo(nextLeft.x, nextLeft.y - 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Правая мягкая панель шкафчика
+        ctx.beginPath();
+        ctx.moveTo(rightEdge.x, rightEdge.y - 2);
+        ctx.lineTo(rightEdge.x, wallTopCur);
+        ctx.lineTo(nextRight.x, wallTopNext);
+        ctx.lineTo(nextRight.x, nextRight.y - 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Плинтус вдоль стен для плавного визуального направления
+        ctx.strokeStyle = `rgba(148, 163, 184, ${0.28 * distanceFade})`;
+        ctx.lineWidth = Math.max(1.5, 3 * leftEdge.scale);
+        ctx.beginPath();
+        ctx.moveTo(leftEdge.x, leftEdge.y);
+        ctx.lineTo(nextLeft.x, nextLeft.y);
+        ctx.moveTo(rightEdge.x, rightEdge.y);
+        ctx.lineTo(nextRight.x, nextRight.y);
+        ctx.stroke();
+
+        // Мягкий потолочный светильник
+        const ceilY = horizonY - (leftEdge.y - horizonY) * 0.68;
+        const lampHalfW = leftEdge.halfWidth * 0.30;
+        ctx.strokeStyle = `rgba(241, 245, 249, ${0.32 * distanceFade})`;
+        ctx.lineWidth = Math.max(2, 5.5 * leftEdge.scale);
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(w * 0.5 - lampHalfW, ceilY);
+        ctx.lineTo(w * 0.5 + lampHalfW, ceilY);
+        ctx.stroke();
+        ctx.lineCap = 'butt';
+    }
+
+    // 5. Плавная воздушная дымка на горизонте (скрывает появление объектов вдали)
+    const fogGrad = ctx.createLinearGradient(0, horizonY - 26, 0, horizonY + 42);
+    fogGrad.addColorStop(0, 'rgba(30, 41, 59, 0.95)');
+    fogGrad.addColorStop(0.5, 'rgba(36, 50, 68, 0.88)');
+    fogGrad.addColorStop(1, 'rgba(59, 73, 94, 0)');
+    ctx.fillStyle = fogGrad;
+    ctx.fillRect(0, horizonY - 26, w, 68);
+
+    // 6. Аккуратная разметка трёх дорожек (непрерывные мягкие линии без мелькания пунктира)
+    [-0.5, 0.5].forEach(laneDiv => {
+        const farPt = project3D(laneDiv, 0.95, w, h);
+        const nearPt = project3D(laneDiv, 0.0, w, h);
+        const lineGrad = ctx.createLinearGradient(0, farPt.y, 0, nearPt.y);
+        lineGrad.addColorStop(0, 'rgba(226, 232, 240, 0.04)');
+        lineGrad.addColorStop(0.4, 'rgba(226, 232, 240, 0.22)');
+        lineGrad.addColorStop(1, 'rgba(251, 191, 36, 0.42)');
+
+        ctx.strokeStyle = lineGrad;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(farPt.x, farPt.y);
+        ctx.lineTo(nearPt.x, nearPt.y);
+        ctx.stroke();
+    });
+
+    // Подсветка выбранной дорожки игрока
+    const activeLaneCenter = gameState.targetLane - 1; // -1, 0, 1
+    const fL = project3D(activeLaneCenter - 0.48, 0.95, w, h);
+    const fR = project3D(activeLaneCenter + 0.48, 0.95, w, h);
+    const nL = project3D(activeLaneCenter - 0.48, 0.0, w, h);
+    const nR = project3D(activeLaneCenter + 0.48, 0.0, w, h);
+
+    const laneHighlight = ctx.createLinearGradient(0, fL.y, 0, nL.y);
+    laneHighlight.addColorStop(0, 'rgba(56, 189, 248, 0.0)');
+    laneHighlight.addColorStop(0.5, 'rgba(56, 189, 248, 0.10)');
+    laneHighlight.addColorStop(1, 'rgba(56, 189, 248, 0.20)');
+
+    ctx.fillStyle = laneHighlight;
+    ctx.beginPath();
+    ctx.moveTo(fL.x, fL.y);
+    ctx.lineTo(fR.x, fR.y);
+    ctx.lineTo(nR.x, nR.y);
+    ctx.lineTo(nL.x, nL.y);
+    ctx.closePath();
+    ctx.fill();
+}
+
+function drawAnswerGates(w, h) {
+    if (!gameState.currentProblem || gameState.gateResolved) return;
+
+    const z = Math.max(0, Math.min(1, gameState.gateZ));
+    const options = gameState.currentProblem.options;
+
+    for (let lane = 0; lane < 3; lane++) {
+        const laneCoord = lane - 1; // -1, 0, 1
+        const centerPt = project3D(laneCoord, z, w, h);
+        const leftPt = project3D(laneCoord - 0.45, z, w, h);
+        const rightPt = project3D(laneCoord + 0.45, z, w, h);
+
+        const gateW = (rightPt.x - leftPt.x);
+        const gateH = gateW * 0.78;
+        const gateX = leftPt.x;
+        const gateY = centerPt.y - gateH;
+
+        const isSelectedLane = (lane === gameState.targetLane);
+
+        // Тень под воротами
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.beginPath();
+        ctx.ellipse(centerPt.x, centerPt.y, gateW * 0.45, Math.max(3, 8 * centerPt.scale), 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Рамка ворот с ответом
+        ctx.save();
+        const grad = ctx.createLinearGradient(gateX, gateY, gateX, centerPt.y);
+        if (isSelectedLane) {
+            grad.addColorStop(0, 'rgba(245, 158, 11, 0.95)');
+            grad.addColorStop(1, 'rgba(217, 119, 6, 0.90)');
+            ctx.strokeStyle = '#fef08a';
+        } else {
+            grad.addColorStop(0, 'rgba(30, 58, 138, 0.92)');
+            grad.addColorStop(1, 'rgba(15, 23, 42, 0.92)');
+            ctx.strokeStyle = '#38bdf8';
+        }
+
+        ctx.lineWidth = Math.max(2, 4 * centerPt.scale);
+        const radius = Math.max(6, 14 * centerPt.scale);
+
+        ctx.beginPath();
+        ctx.roundRect(gateX, gateY, gateW, gateH, radius);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.stroke();
+
+        // Текст варианта ответа на воротах
+        const label = String(options[lane]);
+        const fontSize = Math.max(12, Math.floor(28 * centerPt.scale));
+        ctx.font = `900 ${fontSize}px 'Rubik', sans-serif`;
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 4;
+        ctx.fillText(label, centerPt.x, gateY + gateH * 0.52);
+        ctx.restore();
+    }
+}
+
+function drawStudentCharacter(targetCtx, px, py, cycle, tilt = 0, isDashing = false, scale = 1) {
+    const style = getEquippedStyle();
+    const bounce = Math.abs(Math.sin(cycle)) * 9;
+    const legSwing = Math.sin(cycle) * 13;
+    const armSwing = Math.cos(cycle) * 11;
+
+    targetCtx.save();
+    targetCtx.translate(px, py);
+    targetCtx.scale(scale, scale);
+
+    // Тень под учеником
+    targetCtx.fillStyle = 'rgba(15, 23, 42, 0.42)';
+    targetCtx.beginPath();
+    targetCtx.ellipse(0, 4, 28 - bounce * 0.4, 9, 0, 0, Math.PI * 2);
+    targetCtx.fill();
+
+    // Подъём и наклон при перестроении
+    targetCtx.translate(0, -bounce);
+    targetCtx.rotate(tilt);
+
+    // 1. Ноги (бег со спины)
+    targetCtx.fillStyle = '#1e293b'; // Тёмные школьные брюки
+    targetCtx.beginPath();
+    targetCtx.roundRect(-14, -28 + Math.max(-8, legSwing), 11, 24, 5);
+    targetCtx.fill();
+    // Левый кроссовок (цвет из Гардероба)
+    targetCtx.fillStyle = style.sneakers.main;
+    targetCtx.beginPath();
+    targetCtx.roundRect(-16, -8 + Math.max(-8, legSwing), 14, 9, 4);
+    targetCtx.fill();
+    targetCtx.fillStyle = style.sneakers.stripe;
+    targetCtx.fillRect(-15, -2 + Math.max(-8, legSwing), 12, 3);
+
+    // Правая нога
+    targetCtx.fillStyle = '#1e293b';
+    targetCtx.beginPath();
+    targetCtx.roundRect(3, -28 + Math.max(-8, -legSwing), 11, 24, 5);
+    targetCtx.fill();
+    // Правый кроссовок (цвет из Гардероба)
+    targetCtx.fillStyle = style.sneakers.main;
+    targetCtx.beginPath();
+    targetCtx.roundRect(2, -8 + Math.max(-8, -legSwing), 14, 9, 4);
+    targetCtx.fill();
+    targetCtx.fillStyle = style.sneakers.stripe;
+    targetCtx.fillRect(3, -2 + Math.max(-8, -legSwing), 12, 3);
+
+    // 2. Руки в движении (цвет рукавов из Гардероба)
+    targetCtx.fillStyle = style.uniform.sleeve;
+    targetCtx.beginPath();
+    targetCtx.roundRect(-25, -62 + armSwing * 0.5, 10, 24, 5);
+    targetCtx.roundRect(15, -62 - armSwing * 0.5, 10, 24, 5);
+    targetCtx.fill();
+
+    // 3. Торс (толстовка / форма из Гардероба)
+    targetCtx.fillStyle = style.uniform.body;
+    targetCtx.beginPath();
+    targetCtx.roundRect(-18, -68, 36, 42, 10);
+    targetCtx.fill();
+
+    // 4. Школьный ранец (цвет из Гардероба)
+    targetCtx.fillStyle = style.backpack.main;
+    targetCtx.strokeStyle = style.backpack.border;
+    targetCtx.lineWidth = 2;
+    targetCtx.beginPath();
+    targetCtx.roundRect(-15, -63, 30, 34, 8);
+    targetCtx.fill();
+    targetCtx.stroke();
+
+    // Кармашек и светоотражающая полоска на рюкзаке
+    targetCtx.fillStyle = style.backpack.pocket;
+    targetCtx.beginPath();
+    targetCtx.roundRect(-11, -46, 22, 13, 4);
+    targetCtx.fill();
+    targetCtx.fillStyle = '#fef08a';
+    targetCtx.fillRect(-10, -56, 20, 4);
+
+    // 5. Голова и причёска (вид сзади)
+    targetCtx.fillStyle = '#fcd34d';
+    targetCtx.beginPath();
+    targetCtx.arc(0, -82, 14, 0, Math.PI * 2);
+    targetCtx.fill();
+
+    targetCtx.fillStyle = '#451a03';
+    targetCtx.beginPath();
+    targetCtx.arc(0, -84, 14.5, Math.PI * 0.85, Math.PI * 2.15);
+    targetCtx.closePath();
+    targetCtx.fill();
+
+    // Эффект ускорения при свайпе вверх
+    if (isDashing) {
+        targetCtx.strokeStyle = 'rgba(250, 204, 21, 0.75)';
+        targetCtx.lineWidth = 3;
+        targetCtx.beginPath();
+        targetCtx.moveTo(-26, -20);
+        targetCtx.lineTo(-34, 15);
+        targetCtx.moveTo(26, -20);
+        targetCtx.lineTo(34, 15);
+        targetCtx.stroke();
+    }
+
+    targetCtx.restore();
+}
+
+function drawRunningStudent(w, h) {
+    const laneCoord = gameState.currentLaneX - 1; // -1 .. +1
+    const basePt = project3D(laneCoord, 0.08, w, h);
+    const tilt = (gameState.targetLane - gameState.currentLaneX) * 0.22;
+    drawStudentCharacter(ctx, basePt.x, basePt.y, gameState.runCycle, tilt, gameState.dashActive, 1);
+}
+
+function drawWardrobePreview() {
+    const previewCanvas = document.getElementById('wardrobePreviewCanvas');
+    if (!previewCanvas || document.getElementById('wardrobeContainer').classList.contains('hidden')) return;
+    const pCtx = previewCanvas.getContext('2d');
+    const pw = previewCanvas.width;
+    const ph = previewCanvas.height;
+
+    pCtx.clearRect(0, 0, pw, ph);
+    // Мягкий радиальный фон подиума
+    const grad = pCtx.createRadialGradient(pw * 0.5, ph * 0.6, 5, pw * 0.5, ph * 0.6, 52);
+    grad.addColorStop(0, 'rgba(56, 189, 248, 0.22)');
+    grad.addColorStop(1, 'rgba(15, 23, 42, 0)');
+    pCtx.fillStyle = grad;
+    pCtx.fillRect(0, 0, pw, ph);
+
+    drawStudentCharacter(pCtx, pw * 0.5, ph * 0.86, gameState.runCycle * 0.65, 0, false, 0.95);
+}
+
+function drawParticles(dt) {
+    for (let i = gameState.particles.length - 1; i >= 0; i--) {
+        const p = gameState.particles[i];
+        p.life -= dt;
+        if (p.life <= 0) {
+            gameState.particles.splice(i, 1);
+            continue;
+        }
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += 260 * dt;
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+// ======================= ГЛАВНЫЙ ИГРОВОЙ ЦИКЛ =======================
+let lastFrameTime = performance.now();
+
+function gameLoop(now) {
+    const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
+    lastFrameTime = now;
+
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+
+    // Плавное обновление движения стен и бега с использованием dt
+    const speedMultiplier = gameState.dashActive ? 3.8 : 1.0;
+    gameState.corridorScroll += dt * 0.24 * speedMultiplier;
+    gameState.runCycle += dt * 11 * (gameState.dashActive ? 1.65 : 1.0);
+
+    // Плавный переход между дорожками
+    gameState.currentLaneX += (gameState.targetLane - gameState.currentLaneX) * Math.min(1, dt * 14);
+
+    if (gameState.mode === 'playing' && !gameState.gateResolved) {
+        if (gameState.dashActive) {
+            // При свайпе вверх ворота стремительно приближаются к игроку
+            gameState.gateZ -= dt * 2.6;
+        } else {
+            gameState.timeRemaining = Math.max(0, gameState.timeRemaining - dt);
+            gameState.gateZ = gameState.timeRemaining / gameState.totalTimeForQuestion;
+        }
+
+        // Обновление полоски таймера в HUD
+        const pct = Math.max(0, Math.min(100, (gameState.timeRemaining / gameState.totalTimeForQuestion) * 100));
+        document.getElementById('hudTimerBar').style.width = `${pct}%`;
+        document.getElementById('hudTimerText').textContent = `${gameState.timeRemaining.toFixed(1)} сек`;
+
+        // Проверка столкновения с воротами ответа (z <= 0.09)
+        if (gameState.gateZ <= 0.09) {
+            evaluateCurrentGate();
+        }
+    }
+
+    // Отрисовка сцены
+    ctx.clearRect(0, 0, w, h);
+    drawCorridorEnvironment(w, h);
+    if (gameState.mode === 'playing') {
+        drawAnswerGates(w, h);
+    }
+    drawRunningStudent(w, h);
+    drawParticles(dt);
+    drawWardrobePreview();
+
+    requestAnimationFrame(gameLoop);
+}
+
+// ======================= УПРАВЛЕНИЕ: СВАЙПЫ, КНОПКИ И КЛАВИАТУРА =======================
+let touchStartX = 0;
+let touchStartY = 0;
+let touchActive = false;
+
+canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 0) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchActive = true;
+    }
+}, { passive: true });
+
+canvas.addEventListener('touchend', (e) => {
+    if (!touchActive || e.changedTouches.length === 0) return;
+    touchActive = false;
+
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+
+    // Минимальный порог свайпа — 24px
+    if (Math.max(absX, absY) < 24) return;
+
+    if (absX > absY) {
+        if (dx > 0) moveLane(1);
+        else moveLane(-1);
+    } else {
+        if (dy < 0) triggerDash(); // Свайп вверх (вперёд)
+    }
+}, { passive: true });
+
+// Поддержка свайпа мышью на десктопе
+let mouseDownX = 0;
+let mouseDownY = 0;
+let isMouseDragging = false;
+
+canvas.addEventListener('mousedown', (e) => {
+    mouseDownX = e.clientX;
+    mouseDownY = e.clientY;
+    isMouseDragging = true;
+});
+
+window.addEventListener('mouseup', (e) => {
+    if (!isMouseDragging) return;
+    isMouseDragging = false;
+    const dx = e.clientX - mouseDownX;
+    const dy = e.clientY - mouseDownY;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
+    if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) moveLane(1);
+        else moveLane(-1);
+    } else if (dy < 0) {
+        triggerDash();
+    }
+});
+
+// Клавиатура (Стрелки и WASD)
+window.addEventListener('keydown', (e) => {
+    if (gameState.mode !== 'playing') return;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A' || e.key === 'ф' || e.key === 'Ф') {
+        e.preventDefault();
+        moveLane(-1);
+    } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D' || e.key === 'в' || e.key === 'В') {
+        e.preventDefault();
+        moveLane(1);
+    } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === 'ц' || e.key === 'Ц' || e.key === ' ') {
+        e.preventDefault();
+        triggerDash();
+    }
+});
+
+// Экранные кнопки внизу HUD
+document.getElementById('btnLeft').addEventListener('click', () => moveLane(-1));
+document.getElementById('btnRight').addEventListener('click', () => moveLane(1));
+document.getElementById('btnDash').addEventListener('click', () => triggerDash());
+
+// ======================= ИНТЕРФЕЙС МЕНЮ И МАГАЗИНА ПРОКАЧКИ =======================
+function renderMenuUI() {
+    document.getElementById('menuTotalPoints').textContent = playerData.points;
+    document.getElementById('statReward').textContent = `+${getRewardPoints()} очков`;
+    document.getElementById('statPenalty').textContent = `-${getPenaltyPoints()} очков`;
+    document.getElementById('statTime').textContent = `${getQuestionDuration()} сек`;
+
+    // Индикатор доступного улучшения
+    const canAffordAny = Object.keys(UPGRADE_CONFIG).some(key => {
+        const lvl = playerData.upgrades[key];
+        const cfg = UPGRADE_CONFIG[key];
+        return lvl < cfg.values.length - 1 && playerData.points >= cfg.costs[lvl + 1];
+    });
+    const badge = document.getElementById('shopBadge');
+    if (canAffordAny) badge.classList.remove('hidden');
+    else badge.classList.add('hidden');
+
+    // Переключатель режима (10 задач или Бесконечный)
+    document.getElementById('modeIcon').textContent = playerData.endlessMode ? '♾️' : '🏁';
+    document.getElementById('modeLabel').textContent = playerData.endlessMode ? 'Бесконечно' : '10 задач';
+
+    // Отрисовка карточек 5 уровней
+    const list = document.getElementById('levelsList');
+    list.innerHTML = '';
+    LEVELS.forEach(lvl => {
+        const best = playerData.bestScores[lvl.id];
+        const bestBadgeHTML = best
+            ? `<span class="inline-flex items-center gap-1 bg-black/30 text-amber-300 text-[11px] font-bold px-2 py-0.5 rounded-lg mt-1">🏆 Рекорд: ${best.score} ⭐ (${best.accuracy}%)</span>`
+            : `<span class="inline-flex items-center gap-1 bg-black/20 text-white/75 text-[11px] px-2 py-0.5 rounded-lg mt-1">Ещё не пройден</span>`;
+
+        const card = document.createElement('button');
+        card.className = `btn-3d w-full text-left bg-gradient-to-r ${lvl.color} p-3.5 rounded-2xl border-b-4 ${lvl.border} shadow-lg flex items-center justify-between gap-3 transition hover:brightness-105`;
+        card.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-black/25 flex items-center justify-center text-2xl shrink-0">
+                    ${lvl.icon}
+                </div>
+                <div>
+                    <div class="font-black text-white text-sm sm:text-base leading-tight">${lvl.title}</div>
+                    <div class="text-xs text-white/85 mt-0.5 leading-snug">${lvl.subtitle}</div>
+                    ${bestBadgeHTML}
+                </div>
+            </div>
+            <div class="bg-white/20 hover:bg-white/30 text-white font-black text-xs px-3 py-2 rounded-xl shrink-0">
+                СТАРТ ▶
+            </div>
+        `;
+        card.addEventListener('click', () => startLevel(lvl.id));
+        list.appendChild(card);
+    });
+}
+
+function renderShopUI() {
+    document.getElementById('shopPoints').textContent = playerData.points;
+    const container = document.getElementById('upgradesContainer');
+    container.innerHTML = '';
+
+    Object.keys(UPGRADE_CONFIG).forEach(key => {
+        const cfg = UPGRADE_CONFIG[key];
+        const curLvl = playerData.upgrades[key];
+        const maxLvl = cfg.values.length - 1;
+        const isMax = curLvl >= maxLvl;
+        const nextCost = isMax ? 0 : cfg.costs[curLvl + 1];
+        const canBuy = !isMax && playerData.points >= nextCost;
+
+        const item = document.createElement('div');
+        item.className = 'bg-slate-900 border border-slate-700 rounded-2xl p-4 shadow-md flex flex-col gap-3';
+
+        // Полоска шагов прокачки
+        let barsHTML = '';
+        for (let i = 0; i <= maxLvl; i++) {
+            barsHTML += `<div class="h-2 flex-1 rounded-full ${i <= curLvl ? 'bg-emerald-400' : 'bg-slate-700'}"></div>`;
+        }
+
+        item.innerHTML = `
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-2xl shrink-0">
+                        ${cfg.icon}
+                    </div>
+                    <div>
+                        <div class="font-bold text-white text-sm sm:text-base">${cfg.title}</div>
+                        <div class="text-xs text-slate-400">${cfg.desc}</div>
+                    </div>
+                </div>
+                <div class="text-right shrink-0">
+                    <div class="text-xs text-slate-400">Текущий бонус</div>
+                    <div class="text-sm font-black text-emerald-400">${cfg.format(cfg.values[curLvl])}</div>
+                </div>
+            </div>
+
+            <div class="flex gap-1.5">${barsHTML}</div>
+
+            <div class="flex items-center justify-between pt-1">
+                <div class="text-xs text-slate-300">
+                    ${isMax
+                        ? '<span class="text-amber-400 font-bold">Максимальный уровень достигнут!</span>'
+                        : `Следующий уровень: <b class="text-white">${cfg.format(cfg.values[curLvl + 1])}</b>`
+                    }
+                </div>
+                <button data-upgrade="${key}" ${!canBuy ? 'disabled' : ''} class="btn-3d px-4 py-2 rounded-xl font-black text-xs sm:text-sm flex items-center gap-1.5 ${
+                    isMax
+                        ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                        : (canBuy
+                            ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-b-4 border-amber-600 shadow'
+                            : 'bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed')
+                }">
+                    ${isMax ? 'МАКСИМУМ' : `Купить за ${nextCost} ⭐`}
+                </button>
+            </div>
+        `;
+
+        const btn = item.querySelector('button[data-upgrade]');
+        if (btn && canBuy) {
+            btn.addEventListener('click', () => {
+                playerData.points -= nextCost;
+                playerData.upgrades[key]++;
+                sfx.upgrade();
+                saveProgress();
+                renderShopUI();
+                renderMenuUI();
+            });
+        }
+
+        container.appendChild(item);
+    });
+
+    renderWardrobeUI();
+}
+
+function renderWardrobeUI() {
+    const style = getEquippedStyle();
+    const summaryEl = document.getElementById('previewOutfitSummary');
+    if (summaryEl) {
+        summaryEl.textContent = `${style.uniform.name} • ${style.backpack.name} • ${style.sneakers.name}`;
+    }
+
+    const categoriesEl = document.getElementById('wardrobeCategories');
+    if (!categoriesEl) return;
+    categoriesEl.innerHTML = '';
+
+    Object.keys(WARDROBE_CATALOG).forEach(catKey => {
+        const cat = WARDROBE_CATALOG[catKey];
+        const unlockedList = playerData.wardrobe.unlocked[catKey] || [];
+        const equippedId = playerData.wardrobe.equipped[catKey];
+
+        const section = document.createElement('div');
+        section.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-3.5';
+
+        let optionsHTML = '';
+        cat.items.forEach(item => {
+            const isUnlocked = unlockedList.includes(item.id);
+            const isEquipped = equippedId === item.id;
+            const canBuy = !isUnlocked && playerData.points >= item.cost;
+            const swatchColor = item.body || item.main;
+            const accentColor = item.sleeve || item.pocket || item.stripe;
+
+            optionsHTML += `
+                <button data-cat="${catKey}" data-item="${item.id}" class="flex items-center justify-between gap-2 p-2.5 rounded-xl border text-left transition ${
+                    isEquipped
+                        ? 'bg-indigo-950/80 border-sky-400 shadow-md'
+                        : 'bg-slate-800/70 hover:bg-slate-800 border-slate-700'
+                }">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-7 h-7 rounded-full border-2 border-white/40 shrink-0 shadow-inner" style="background: linear-gradient(135deg, ${swatchColor} 55%, ${accentColor} 55%);"></span>
+                        <div class="truncate">
+                            <div class="text-xs font-bold text-white truncate">${item.name}</div>
+                            <div class="text-[10px] ${isEquipped ? 'text-sky-300 font-bold' : 'text-slate-400'}">
+                                ${isEquipped ? '✓ Надето' : (isUnlocked ? 'Куплено' : `${item.cost} ⭐`)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="shrink-0">
+                        ${isEquipped
+                            ? '<span class="bg-sky-500 text-slate-950 text-[10px] font-black px-2 py-1 rounded-lg">АКТИВНО</span>'
+                            : (isUnlocked
+                                ? '<span class="bg-slate-700 text-slate-200 text-[10px] font-bold px-2 py-1 rounded-lg">Выбрать</span>'
+                                : `<span class="${canBuy ? 'bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-500'} text-[10px] font-black px-2 py-1 rounded-lg">${item.cost} ⭐</span>`
+                            )
+                        }
+                    </div>
+                </button>
+            `;
+        });
+
+        section.innerHTML = `
+            <div class="flex items-center gap-2 mb-2.5">
+                <span class="text-lg">${cat.icon}</span>
+                <span class="text-xs sm:text-sm font-black text-white uppercase tracking-wide">${cat.title}</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                ${optionsHTML}
+            </div>
+        `;
+
+        section.querySelectorAll('button[data-cat]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const cKey = btn.getAttribute('data-cat');
+                const iId = btn.getAttribute('data-item');
+                const targetItem = WARDROBE_CATALOG[cKey].items.find(x => x.id === iId);
+                if (!targetItem) return;
+
+                const unlocked = playerData.wardrobe.unlocked[cKey];
+                if (unlocked.includes(iId)) {
+                    playerData.wardrobe.equipped[cKey] = iId;
+                    sfx.swipe();
+                    saveProgress();
+                    renderShopUI();
+                } else if (playerData.points >= targetItem.cost) {
+                    playerData.points -= targetItem.cost;
+                    unlocked.push(iId);
+                    playerData.wardrobe.equipped[cKey] = iId;
+                    sfx.upgrade();
+                    saveProgress();
+                    renderShopUI();
+                    renderMenuUI();
+                }
+            });
+        });
+
+        categoriesEl.appendChild(section);
+    });
+}
+
+function renderLeaderboardUI() {
+    const totalBest = getTotalBestScore();
+    document.getElementById('playerNameInput').value = playerData.playerName || 'Ученик';
+    document.getElementById('leaderboardTotalScore').textContent = `${totalBest} ⭐`;
+    document.getElementById('playerRankBadge').textContent = getPlayerRankTitle(totalBest);
+
+    // 1. Общая таблица лидеров школы (соперники + сам игрок)
+    const entries = [
+        ...SCHOOL_RIVALS.map(r => ({ ...r, isPlayer: false })),
+        {
+            name: `${playerData.playerName || 'Ученик'} (Вы)`,
+            score: totalBest,
+            badge: getPlayerRankTitle(totalBest),
+            isPlayer: true
+        }
+    ].sort((a, b) => b.score - a.score);
+
+    const schoolEl = document.getElementById('schoolBoardContainer');
+    schoolEl.innerHTML = '';
+    entries.forEach((entry, idx) => {
+        const rankNum = idx + 1;
+        const medal = rankNum === 1 ? '🥇' : (rankNum === 2 ? '🥈' : (rankNum === 3 ? '🥉' : `#${rankNum}`));
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between p-3 rounded-2xl border ${
+            entry.isPlayer
+                ? 'bg-indigo-950/90 border-sky-400 shadow-lg'
+                : 'bg-slate-900/90 border-slate-800'
+        }`;
+        row.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center font-black text-sm">
+                    ${medal}
+                </div>
+                <div>
+                    <div class="text-xs sm:text-sm font-black ${entry.isPlayer ? 'text-sky-300' : 'text-white'}">${entry.name}</div>
+                    <div class="text-[11px] text-slate-400">${entry.badge}</div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-sm font-black text-amber-400">${entry.score} ⭐</div>
+            </div>
+        `;
+        schoolEl.appendChild(row);
+    });
+
+    // 2. Личные рекорды по каждому из 5 уровней
+    const levelsEl = document.getElementById('levelRecordsContainer');
+    levelsEl.innerHTML = '';
+    LEVELS.forEach(lvl => {
+        const rec = playerData.bestScores[lvl.id];
+        const card = document.createElement('div');
+        card.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-3';
+        card.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-xl shrink-0">
+                    ${lvl.icon}
+                </div>
+                <div>
+                    <div class="text-xs sm:text-sm font-bold text-white">${lvl.title}</div>
+                    <div class="text-[11px] text-slate-400">
+                        ${rec ? `Точность: <b class="text-emerald-400">${rec.accuracy}%</b> (${rec.correct}/${rec.total}) • ${rec.date}` : 'Забегов ещё не было'}
+                    </div>
+                </div>
+            </div>
+            <div class="text-right shrink-0">
+                <div class="text-xs text-slate-400">Рекорд</div>
+                <div class="text-sm font-black ${rec ? 'text-amber-400' : 'text-slate-600'}">
+                    ${rec ? `${rec.score} ⭐` : '—'}
+                </div>
+            </div>
+        `;
+        levelsEl.appendChild(card);
+    });
+}
+
+// Переключение вкладок в магазине (Навыки / Внешний вид)
+document.getElementById('tabBtnUpgrades').addEventListener('click', () => {
+    document.getElementById('upgradesContainer').classList.remove('hidden');
+    document.getElementById('wardrobeContainer').classList.add('hidden');
+    document.getElementById('tabBtnUpgrades').className = 'flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition bg-indigo-600 text-white shadow';
+    document.getElementById('tabBtnWardrobe').className = 'flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition text-slate-400 hover:text-white';
+});
+
+document.getElementById('tabBtnWardrobe').addEventListener('click', () => {
+    document.getElementById('upgradesContainer').classList.add('hidden');
+    document.getElementById('wardrobeContainer').classList.remove('hidden');
+    document.getElementById('tabBtnWardrobe').className = 'flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition bg-indigo-600 text-white shadow';
+    document.getElementById('tabBtnUpgrades').className = 'flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition text-slate-400 hover:text-white';
+    renderWardrobeUI();
+});
+
+// Обработчики Таблицы рекордов
+document.getElementById('btnOpenLeaderboard').addEventListener('click', () => {
+    renderLeaderboardUI();
+    document.getElementById('leaderboardModal').classList.remove('hidden');
+});
+
+document.getElementById('btnCloseLeaderboard').addEventListener('click', () => {
+    document.getElementById('leaderboardModal').classList.add('hidden');
+    renderMenuUI();
+});
+
+document.getElementById('playerNameInput').addEventListener('input', (e) => {
+    playerData.playerName = e.target.value.trim() || 'Ученик';
+    saveProgress();
+    renderLeaderboardUI();
+});
+
+document.getElementById('tabBtnSchoolBoard').addEventListener('click', () => {
+    document.getElementById('schoolBoardContainer').classList.remove('hidden');
+    document.getElementById('levelRecordsContainer').classList.add('hidden');
+    document.getElementById('tabBtnSchoolBoard').className = 'flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition bg-amber-500 text-slate-950 shadow';
+    document.getElementById('tabBtnLevelRecords').className = 'flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition text-slate-400 hover:text-white';
+});
+
+document.getElementById('tabBtnLevelRecords').addEventListener('click', () => {
+    document.getElementById('schoolBoardContainer').classList.add('hidden');
+    document.getElementById('levelRecordsContainer').classList.remove('hidden');
+    document.getElementById('tabBtnLevelRecords').className = 'flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition bg-amber-500 text-slate-950 shadow';
+    document.getElementById('tabBtnSchoolBoard').className = 'flex-1 py-2 rounded-xl font-bold text-xs sm:text-sm transition text-slate-400 hover:text-white';
+});
+
+// Обработчики кнопок навигации
+document.getElementById('btnOpenShop').addEventListener('click', () => {
+    renderShopUI();
+    document.getElementById('shopModal').classList.remove('hidden');
+});
+
+document.getElementById('btnCloseShop').addEventListener('click', () => {
+    document.getElementById('shopModal').classList.add('hidden');
+    renderMenuUI();
+});
+
+document.getElementById('btnToggleEndless').addEventListener('click', () => {
+    playerData.endlessMode = !playerData.endlessMode;
+    saveProgress();
+    renderMenuUI();
+});
+
+document.getElementById('btnToggleSound').addEventListener('click', (e) => {
+    sfx.enabled = !sfx.enabled;
+    e.currentTarget.textContent = sfx.enabled ? '🔊' : '🔇';
+});
+
+document.getElementById('btnPause').addEventListener('click', () => {
+    gameState.mode = 'menu';
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('menuScreen').classList.remove('hidden');
+    renderMenuUI();
+});
+
+document.getElementById('btnSummaryReplay').addEventListener('click', () => {
+    startLevel(gameState.levelId);
+});
+
+document.getElementById('btnSummaryShop').addEventListener('click', () => {
+    document.getElementById('summaryModal').classList.add('hidden');
+    document.getElementById('menuScreen').classList.remove('hidden');
+    renderShopUI();
+    document.getElementById('shopModal').classList.remove('hidden');
+});
+
+document.getElementById('btnSummaryMenu').addEventListener('click', () => {
+    document.getElementById('summaryModal').classList.add('hidden');
+    document.getElementById('menuScreen').classList.remove('hidden');
+    renderMenuUI();
+});
+
+document.getElementById('btnResetProgress').addEventListener('click', () => {
+    playerData = {
+        playerName: 'Ученик',
+        points: 0,
+        upgrades: { reward: 0, penalty: 0, time: 0 },
+        wardrobe: {
+            unlocked: {
+                uniform: ['blue'],
+                backpack: ['amber'],
+                sneakers: ['red']
+            },
+            equipped: {
+                uniform: 'blue',
+                backpack: 'amber',
+                sneakers: 'red'
+            }
+        },
+        bestScores: {},
+        recentRuns: [],
+        endlessMode: false
+    };
+    saveProgress();
+    renderShopUI();
+    renderMenuUI();
+});
+
+// Инициализация при загрузке окна
+window.onload = function () {
+    loadProgress();
+    resizeCanvas();
+    renderMenuUI();
+    requestAnimationFrame(gameLoop);
+};
+</script>
+</body>
+</html>
